@@ -1,5 +1,5 @@
 ---
-title: "Rent Some Hash"
+title: "Rent Some Hash: Braiins to DATUM to OCEAN guide"
 description: "Mechanic's guide for renting hashpower on Braiins, pointing it at DATUM, and using it to make your own blocks on OCEAN."
 eyebrow: "Mechanic's guide"
 primaryCtaLabel: "Read the main guide"
