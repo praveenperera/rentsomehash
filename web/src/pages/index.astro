@@ -18,7 +18,7 @@ const primaryGuide = guides.find((entry) => entry.data.kind === "primary") ?? gu
 const { Content } = await render(home);
 ---
 
-<SiteLayout title={home.data.title} description={home.data.description}>
+<SiteLayout title={home.data.title} description={home.data.description} ogImage="/og.png">
   <Header guides={guides} currentPath={Astro.url.pathname} />
 
   <main class="pb-24">
