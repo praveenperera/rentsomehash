@@ -16,6 +16,8 @@ This is the route to use if you want the cleanest setup and do not already have 
 
 You are building what is effectively a dedicated datum box: one Linux machine that runs the node and DATUM together. The chain sync still takes time, but the pieces fit together right out of the gate.
 
+If you already have a node, you can point DATUM to that instead if you know how.
+
 ## What you need first
 
 - A machine you will use to manage the setup, usually your normal laptop
@@ -53,9 +55,9 @@ sudo -i
 Run the setup exactly from the repository below:
 
 ```bash
-apt update && apt upgrade -y
+apt update && apt upgrade
 apt install git -y
-git clone https://github.com/com320/OC-mech-datum-boxes
+git clone https://github.com/BitcoinMechanic/OC-mech-datum-boxes/tree/add-110-option
 cd OC-mech-datum-boxes
 git checkout 0.3-dev
 ./main.sh
@@ -108,13 +110,13 @@ Once the box is ready and Braiins is funded, create the bid.
 
 You can start with Braiins' suggested pricing using **Use** or **Use max**, then use your own judgment from there.
 
-The point is not to pay something stupid.
+You obviously do not want to be paying exorbitant amounts.
 
 ### Speed limit
 
-The higher the speed limit, the faster you burn sats.
+The higher the speed limit, the faster you'll burn through your sats.
 
-The faster you burn sats, the harder variance hits. That can be lucky variance or unlucky variance. It is still variance.
+The faster you burn through sats, the more variance you will suffer. That can go your way or not. Choice is yours.
 
 ### Mining pool URL
 
@@ -134,7 +136,7 @@ With the default DATUM settings, the username wants to look like this:
 bc1qyourrealbitcoinaddress.someworkername
 ```
 
-> If you want to hide your Bitcoin address from Braiins, you can change DATUM's `pool_pass_full_users` setting to `false` and restart DATUM. That still does not buy meaningful OPSEC against Braiins, so treat it like theater, not protection.
+> If you want to obscure your Bitcoin address from Braiins here, you can change DATUM's `pool_pass_full_users` setting to `false` and restart DATUM. Braiins are still perfectly capable of figuring this out though, so it's a LARP as far as any OPSEC is concerned.
 
 If you do that, rewards go to the `POOL_ADDRESS` you set during the installer. That is why the guide keeps hammering on using an address you control.
 
