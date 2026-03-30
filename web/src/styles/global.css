@@ -199,8 +199,20 @@
   @apply pl-6;
 }
 
+.content-prose ul {
+  @apply list-disc;
+}
+
+.content-prose ol {
+  @apply list-decimal;
+}
+
 .content-prose li {
   @apply my-2;
+}
+
+.content-prose li::marker {
+  color: color-mix(in oklch, var(--foreground) 72%, transparent);
 }
 
 .content-prose a {
