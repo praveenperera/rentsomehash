@@ -1,4 +1,5 @@
 name = "rentsomehash"
+main = "./worker.js"
 compatibility_date = "2026-03-29"
 
 [observability]
@@ -6,3 +7,5 @@ enabled = true
 
 [assets]
 directory = "./dist"
+binding = "ASSETS"
+run_worker_first = true
