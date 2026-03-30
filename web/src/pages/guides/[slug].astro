@@ -103,7 +103,7 @@ const relatedGuides = guides.filter((guide) => guide.data.slug !== entry.data.sl
 
     <section class="mx-auto max-w-6xl px-6 py-14 lg:px-8">
       <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_18rem]">
-        <article class="content-prose order-2 lg:order-1">
+        <article class="content-prose order-2 min-w-0 lg:order-1">
           <Content />
         </article>
 
@@ -155,7 +155,10 @@ const relatedGuides = guides.filter((guide) => guide.data.slug !== entry.data.sl
         {neighbors.previous ? (
           <a
             href={getGuideHref(neighbors.previous)}
-            class={buttonVariants({ variant: "outline", size: "lg" })}
+            class:list={[
+              buttonVariants({ variant: "outline", size: "lg" }),
+              "w-full justify-between whitespace-normal text-left sm:w-auto sm:whitespace-nowrap",
+            ]}
           >
             <ArrowLeftIcon className="size-4" aria-hidden="true" />
             {neighbors.previous.data.title}
@@ -165,12 +168,24 @@ const relatedGuides = guides.filter((guide) => guide.data.slug !== entry.data.sl
         )}
 
         {neighbors.next ? (
-          <a href={getGuideHref(neighbors.next)} class={buttonVariants({ size: "lg" })}>
+          <a
+            href={getGuideHref(neighbors.next)}
+            class:list={[
+              buttonVariants({ size: "lg" }),
+              "w-full justify-between whitespace-normal text-left sm:w-auto sm:whitespace-nowrap",
+            ]}
+          >
             {neighbors.next.data.title}
             <ArrowRightIcon className="size-4" aria-hidden="true" />
           </a>
         ) : (
-          <a href="/" class={buttonVariants({ size: "lg" })}>
+          <a
+            href="/"
+            class:list={[
+              buttonVariants({ size: "lg" }),
+              "w-full justify-between whitespace-normal text-left sm:w-auto sm:whitespace-nowrap",
+            ]}
+          >
             Back home
           </a>
         )}
