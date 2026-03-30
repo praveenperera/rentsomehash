@@ -157,3 +157,11 @@ At the end of this flow:
 - The bid is funded and confirmed
 
 If one of those is not true yet, the guide is not done.
+
+## Why use this route
+
+- This is the cleanest route if you do not already run a node and just want to get from zero to a working DATUM box
+- The node and DATUM live together on one machine, which avoids a lot of cross-box networking mistakes
+- Braiins only needs one public IP and port, so the pool URL side stays simple
+- Troubleshooting is easier because the whole stack is in one place instead of split across home hardware and a tunnel
+- If you support BIP-110, selecting that option in the installer lets you point rented hash at a box running that build

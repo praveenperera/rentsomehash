@@ -89,3 +89,10 @@ The Braiins side does not really change:
 If you need the exact Braiins field-by-field guidance, use the main guide alongside this one:
 
 <https://rentsomehash.com/guides/braiins-ocean/>
+
+## Why use this route
+
+- You already have a StartOS box you trust, so you can reuse it instead of rebuilding the whole stack on a fresh VPS
+- Start Tunnel gives Braiins a stable public endpoint without handing over your literal home IP
+- Your node and DATUM stay on hardware you already control, which is the whole point of this route
+- If you support BIP-110, this route lets you keep that node on StartOS and point rented hash at that setup
