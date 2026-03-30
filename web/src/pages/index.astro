@@ -1,0 +1,204 @@
+---
+import { render } from "astro:content";
+import { ArrowRightIcon, ArrowSquareOutIcon } from "@phosphor-icons/react";
+
+import Footer from "@/components/Footer.astro";
+import GuideListItem from "@/components/GuideListItem.astro";
+import Header from "@/components/Header.astro";
+import WarningsAccordion from "@/components/WarningsAccordion";
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { getGuideHref, getGuides, getHomePage, getReadingTime } from "@/lib/content";
+import SiteLayout from "@/layouts/SiteLayout.astro";
+
+const home = await getHomePage();
+const guides = await getGuides();
+const primaryGuide = guides.find((entry) => entry.data.kind === "primary") ?? guides[0];
+const { Content } = await render(home);
+---
+
+<SiteLayout title={home.data.title} description={home.data.description}>
+  <Header guides={guides} currentPath={Astro.url.pathname} />
+
+  <main class="pb-24">
+    <section class="border-b border-border/70">
+      <div class="mx-auto grid max-w-6xl gap-12 px-6 pt-28 pb-16 lg:grid-cols-[1.4fr_0.9fr] lg:px-8">
+        <div class="space-y-8">
+          <div class="space-y-4">
+            <Badge variant="outline">{home.data.eyebrow}</Badge>
+            <h1 class="max-w-4xl text-5xl font-heading font-medium tracking-[-0.08em] text-balance sm:text-6xl">
+              Rent hashpower on Braiins. Point it at DATUM. Build blocks on OCEAN.
+            </h1>
+            <p class="max-w-2xl text-lg leading-8 text-foreground/76">
+              {home.data.description}
+            </p>
+          </div>
+
+          <div class="flex flex-wrap gap-3">
+            <a href={home.data.primaryCtaHref} class={buttonVariants({ size: "lg" })}>
+              {home.data.primaryCtaLabel}
+            </a>
+            <a href={home.data.secondaryCtaHref} class={buttonVariants({ variant: "outline", size: "lg" })}>
+              {home.data.secondaryCtaLabel}
+            </a>
+          </div>
+
+          <div class="content-prose max-w-2xl">
+            <Content />
+          </div>
+        </div>
+
+        <div class="space-y-4 border border-border/70 bg-background/70 p-5 backdrop-blur-sm">
+          <p class="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+            Main route
+          </p>
+          <div class="space-y-2">
+            <p class="text-sm font-heading tracking-[-0.04em]">
+              {primaryGuide.data.title}
+            </p>
+            <p class="text-sm leading-7 text-foreground/74">
+              {primaryGuide.data.summary}
+            </p>
+          </div>
+          <Separator />
+          <dl class="grid gap-4 sm:grid-cols-2">
+            <div class="space-y-1">
+              <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                Route
+              </dt>
+              <dd class="text-sm text-foreground/82">Linux VPS + DATUM box</dd>
+            </div>
+            <div class="space-y-1">
+              <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                Read time
+              </dt>
+              <dd class="text-sm text-foreground/82">{getReadingTime(primaryGuide)}</dd>
+            </div>
+            <div class="space-y-1">
+              <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                Focus
+              </dt>
+              <dd class="text-sm text-foreground/82">Fastest way to get a datum box online</dd>
+            </div>
+            <div class="space-y-1">
+              <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                Alternative
+              </dt>
+              <dd class="text-sm text-foreground/82">StartOS + Start Tunnel guide included</dd>
+            </div>
+          </dl>
+          <a
+            href={getGuideHref(primaryGuide)}
+            class="inline-flex items-center gap-2 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+          >
+            Open the main guide
+            <ArrowRightIcon className="size-4" aria-hidden="true" />
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="mx-auto max-w-6xl px-6 py-16 lg:px-8">
+      <div class="grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+        <div class="space-y-4">
+          <p class="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+            What you are actually doing
+          </p>
+          <h2 class="max-w-lg text-3xl font-heading tracking-[-0.06em]">
+            The work is simple. The details are where people get lost.
+          </h2>
+          <p class="max-w-lg text-base leading-8 text-foreground/74">
+            The guide is broken into the same real-world steps you have to execute:
+            getting the node online, wiring DATUM, funding Braiins, and entering the
+            right pool details the first time.
+          </p>
+        </div>
+
+        <div class="space-y-4">
+          {home.data.highlights.map((highlight, index) => (
+            <div class="space-y-4">
+              {index > 0 && <Separator />}
+              <div class="grid gap-3 md:grid-cols-[10rem_1fr]">
+                <p class="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                  Step 0{index + 1}
+                </p>
+                <div class="space-y-2">
+                  <h3 class="text-lg font-heading tracking-[-0.04em]">
+                    {highlight.title}
+                  </h3>
+                  <p class="text-sm leading-7 text-foreground/74">
+                    {highlight.body}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="border-y border-border/70 bg-muted/20">
+      <div class="mx-auto max-w-6xl px-6 py-16 lg:px-8">
+        <div class="grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+          <div class="space-y-5">
+            <p class="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+              Routes
+            </p>
+            <h2 class="text-3xl font-heading tracking-[-0.06em]">
+              Pick the path that matches the machine you already trust
+            </h2>
+            <p class="max-w-xl text-base leading-8 text-foreground/74">
+              The main route assumes a fresh Linux VPS and gets everything onto one
+              machine. The StartOS route is there if you already have home hardware and
+              want to route Braiins traffic through Start Tunnel instead.
+            </p>
+          </div>
+
+          <div class="space-y-0 border border-border/70 bg-background/70 backdrop-blur-sm">
+            {guides.map((guide, index) => (
+              <div>
+                {index > 0 && <Separator />}
+                <GuideListItem guide={guide} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mx-auto max-w-6xl px-6 py-16 lg:px-8">
+      <div class="grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+        <div class="space-y-4">
+          <p class="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+            Don&apos;t skip these
+          </p>
+          <h2 class="text-3xl font-heading tracking-[-0.06em]">
+            The failure modes are boring, but they are the ones that cost sats
+          </h2>
+        </div>
+
+        <WarningsAccordion client:visible warnings={home.data.warnings} />
+      </div>
+    </section>
+
+    <section class="mx-auto max-w-6xl px-6 pb-8 lg:px-8">
+      <div class="flex flex-wrap items-center justify-between gap-4 border-t border-border/70 pt-8">
+        <div class="space-y-1">
+          <p class="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+            Ready to start
+          </p>
+          <p class="text-sm text-foreground/74">
+            Open the main route and work through it line by line
+          </p>
+        </div>
+        <a href={home.data.primaryCtaHref} class={buttonVariants({ size: "lg" })}>
+          Start the guide
+          <ArrowSquareOutIcon className="size-4" aria-hidden="true" />
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</SiteLayout>

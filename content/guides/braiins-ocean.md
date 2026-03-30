@@ -1,0 +1,157 @@
+---
+title: "Braiins to OCEAN on a fresh DATUM box"
+description: "The fastest route: rent a Linux VPS, install the combined node + DATUM box, wait for sync, then point Braiins hashpower at it."
+slug: braiins-ocean
+order: 1
+kind: primary
+summary: "Fresh Linux VPS workflow for bringing up a node, running DATUM, and creating the Braiins bid correctly."
+eyebrow: "Main route"
+featured: true
+updated: "2026-03-29"
+---
+
+## The route
+
+This is the route to use if you want the cleanest setup and do not already have a node wired to DATUM.
+
+You are building what is effectively a dedicated datum box: one Linux machine that runs the node and DATUM together. The chain sync still takes time, but the pieces fit together right out of the gate.
+
+## What you need first
+
+- A machine you will use to manage the setup, usually your normal laptop
+- A Linux VPS from a provider such as [Bitlaunch](https://bitlaunch.io)
+- An SSH keypair for the machine you manage from
+- A Bitcoin address you control for `POOL_ADDRESS`
+- BTC ready to fund your Braiins account
+
+## 1. Generate an SSH keypair
+
+Generate an SSH keypair on the machine you will use to manage everything.
+
+If you need a refresher, use Start9's SSH guide:
+
+<https://docs.start9.com/0.3.5.x/user-manual/ssh.html>
+
+## 2. Rent the VPS
+
+Rent the VPS and paste your SSH public key into the provider's setup flow so you can log in without fighting passwords later.
+
+Once the machine is up, SSH in:
+
+```bash
+ssh root@your-vps-ip
+```
+
+Then become root if you are not already:
+
+```bash
+sudo -i
+```
+
+## 3. Install the datum box
+
+Run the setup exactly from the repository below:
+
+```bash
+apt update && apt upgrade -y
+apt install git -y
+git clone https://github.com/com320/OC-mech-datum-boxes
+cd OC-mech-datum-boxes
+git checkout 0.3-dev
+./main.sh
+```
+
+## 4. Answer the installer
+
+The script asks a lot of questions.
+
+Use these instructions while you work through them:
+
+<https://github.com/BitcoinMechanic/datum-setup-instructions>
+
+The short version is simple:
+
+- You can accept the default for basically everything
+- `POOL_ADDRESS` is the one field you must set carefully
+- `POOL_ADDRESS` must be a valid Bitcoin address you control
+- If this is a VPS, pruning to `550` is the sensible choice
+
+> If you are renting a VPS, almost nobody doing this guide wants to pay for archival-node storage. Pruning to `550` is the default for a reason.
+
+> If you selected BIP-110 in the installer, that is what the box is running.
+
+## 5. Wait for the node to sync
+
+That finishes the install, but you still need to wait for the chain to sync.
+
+You can follow progress with:
+
+```bash
+journalctl -u bitcoin_knots.service -f
+```
+
+Do not rush this part. Getting the box online is the slowest step in the whole process.
+
+## 6. Fund Braiins
+
+Create a Braiins hashpower account here:
+
+<https://hashpower.braiins.com/>
+
+Then do the Telegram verification they require, and send BTC to the deposit address they give you.
+
+## 7. Create the bid
+
+Once the box is ready and Braiins is funded, create the bid.
+
+### Price and budget
+
+You can start with Braiins' suggested pricing using **Use** or **Use max**, then use your own judgment from there.
+
+The point is not to pay something stupid.
+
+### Speed limit
+
+The higher the speed limit, the faster you burn sats.
+
+The faster you burn sats, the harder variance hits. That can be lucky variance or unlucky variance. It is still variance.
+
+### Mining pool URL
+
+Point Braiins to your DATUM box like this:
+
+```text
+stratum+tcp://your-vps-ip:23334
+```
+
+Do not include backticks or angle brackets. Replace `your-vps-ip` with the actual VPS IP.
+
+### Pool username
+
+With the default DATUM settings, the username wants to look like this:
+
+```text
+bc1qyourrealbitcoinaddress.someworkername
+```
+
+> If you want to hide your Bitcoin address from Braiins, you can change DATUM's `pool_pass_full_users` setting to `false` and restart DATUM. That still does not buy meaningful OPSEC against Braiins, so treat it like theater, not protection.
+
+If you do that, rewards go to the `POOL_ADDRESS` you set during the installer. That is why the guide keeps hammering on using an address you control.
+
+## 8. Confirm the bid
+
+Create the bid and confirm it in Telegram.
+
+That is it for the main route.
+
+## What success looks like
+
+At the end of this flow:
+
+- The VPS is running your node and DATUM together
+- The node is synced
+- Braiins is pointed at `stratum+tcp://your-vps-ip:23334`
+- The pool username matches the DATUM behavior you chose
+- The bid is funded and confirmed
+
+If one of those is not true yet, the guide is not done.

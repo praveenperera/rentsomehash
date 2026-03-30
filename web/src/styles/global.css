@@ -1,0 +1,245 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@plugin "@tailwindcss/typography";
+
+@font-face {
+  font-family: "IBM Plex Sans Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 700;
+  src: url("/fonts/ibm-plex-sans-latin-wght-normal.woff2")
+    format("woff2-variations");
+}
+
+@font-face {
+  font-family: "JetBrains Mono Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url("/fonts/jetbrains-mono-latin-wght-normal.woff2")
+    format("woff2-variations");
+}
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "IBM Plex Sans Variable", sans-serif;
+  --font-heading: "JetBrains Mono Variable", monospace;
+  --font-mono: "JetBrains Mono Variable", monospace;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.65);
+  --radius-md: calc(var(--radius) * 0.85);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+}
+
+:root {
+  --background: oklch(0.985 0.004 255);
+  --foreground: oklch(0.232 0.02 256);
+  --card: oklch(0.995 0.003 255);
+  --card-foreground: oklch(0.232 0.02 256);
+  --popover: oklch(0.995 0.003 255);
+  --popover-foreground: oklch(0.232 0.02 256);
+  --primary: oklch(0.585 0.212 27.2);
+  --primary-foreground: oklch(0.985 0.004 255);
+  --secondary: oklch(0.955 0.009 255);
+  --secondary-foreground: oklch(0.264 0.022 255);
+  --muted: oklch(0.965 0.007 255);
+  --muted-foreground: oklch(0.52 0.014 255);
+  --accent: oklch(0.946 0.012 255);
+  --accent-foreground: oklch(0.264 0.022 255);
+  --destructive: oklch(0.585 0.212 27.2);
+  --border: oklch(0.89 0.01 255);
+  --input: oklch(0.91 0.01 255);
+  --ring: oklch(0.585 0.212 27.2);
+  --chart-1: oklch(0.82 0.02 255);
+  --chart-2: oklch(0.68 0.02 255);
+  --chart-3: oklch(0.54 0.02 255);
+  --chart-4: oklch(0.42 0.02 255);
+  --chart-5: oklch(0.3 0.02 255);
+  --radius: 0.875rem;
+  --sidebar: oklch(0.988 0.004 255);
+  --sidebar-foreground: oklch(0.232 0.02 256);
+  --sidebar-primary: oklch(0.585 0.212 27.2);
+  --sidebar-primary-foreground: oklch(0.985 0.004 255);
+  --sidebar-accent: oklch(0.95 0.01 255);
+  --sidebar-accent-foreground: oklch(0.264 0.022 255);
+  --sidebar-border: oklch(0.89 0.01 255);
+  --sidebar-ring: oklch(0.585 0.212 27.2);
+}
+
+.dark {
+  --background: oklch(0.17 0.01 255);
+  --foreground: oklch(0.96 0.006 255);
+  --card: oklch(0.215 0.012 255);
+  --card-foreground: oklch(0.96 0.006 255);
+  --popover: oklch(0.215 0.012 255);
+  --popover-foreground: oklch(0.96 0.006 255);
+  --primary: oklch(0.69 0.185 27.5);
+  --primary-foreground: oklch(0.18 0.01 255);
+  --secondary: oklch(0.262 0.012 255);
+  --secondary-foreground: oklch(0.96 0.006 255);
+  --muted: oklch(0.252 0.012 255);
+  --muted-foreground: oklch(0.73 0.012 255);
+  --accent: oklch(0.27 0.012 255);
+  --accent-foreground: oklch(0.96 0.006 255);
+  --destructive: oklch(0.69 0.185 27.5);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.69 0.185 27.5);
+  --chart-1: oklch(0.78 0.02 255);
+  --chart-2: oklch(0.62 0.02 255);
+  --chart-3: oklch(0.48 0.02 255);
+  --chart-4: oklch(0.36 0.02 255);
+  --chart-5: oklch(0.26 0.02 255);
+  --sidebar: oklch(0.205 0.012 255);
+  --sidebar-foreground: oklch(0.96 0.006 255);
+  --sidebar-primary: oklch(0.69 0.185 27.5);
+  --sidebar-primary-foreground: oklch(0.18 0.01 255);
+  --sidebar-accent: oklch(0.27 0.012 255);
+  --sidebar-accent-foreground: oklch(0.96 0.006 255);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.69 0.185 27.5);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply scroll-smooth font-sans;
+  }
+
+  body {
+    @apply min-h-screen bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(
+        circle at top right,
+        color-mix(in oklch, var(--primary) 14%, transparent) 0,
+        transparent 34%
+      ),
+      linear-gradient(
+        180deg,
+        color-mix(in oklch, var(--muted) 22%, transparent),
+        transparent 28%
+      );
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading;
+  }
+
+  ::selection {
+    background: color-mix(in oklch, var(--primary) 28%, transparent);
+  }
+}
+
+.content-prose {
+  @apply text-base text-foreground/84;
+}
+
+.content-prose > *:first-child {
+  @apply mt-0;
+}
+
+.content-prose h2 {
+  @apply mt-14 mb-5 text-2xl tracking-[-0.06em];
+}
+
+.content-prose h3 {
+  @apply mt-10 mb-4 text-xl tracking-[-0.05em];
+}
+
+.content-prose p,
+.content-prose ul,
+.content-prose ol {
+  @apply my-5 text-[1.02rem] leading-8;
+}
+
+.content-prose ul,
+.content-prose ol {
+  @apply pl-6;
+}
+
+.content-prose li {
+  @apply my-2;
+}
+
+.content-prose a {
+  @apply text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:decoration-primary;
+}
+
+.content-prose strong {
+  @apply font-semibold text-foreground;
+}
+
+.content-prose code {
+  @apply rounded-none border border-border/80 bg-muted/60 px-1.5 py-0.5 font-mono text-[0.9em] text-foreground;
+}
+
+.content-prose pre {
+  @apply my-6 overflow-x-auto border border-border/70 bg-muted/40 px-4 py-4 text-sm;
+}
+
+.content-prose pre code {
+  @apply border-0 bg-transparent p-0 text-inherit;
+}
+
+.content-prose blockquote {
+  @apply my-6 border-l-2 border-primary bg-muted/35 px-4 py-3 text-foreground/84;
+}
+
+.content-prose hr {
+  @apply my-10 border-border/70;
+}
+
+.content-prose table {
+  @apply my-6 w-full border-collapse text-left text-sm;
+}
+
+.content-prose th,
+.content-prose td {
+  @apply border border-border/70 px-3 py-2 align-top;
+}
+
+.content-prose th {
+  @apply bg-muted/50 font-medium text-foreground;
+}

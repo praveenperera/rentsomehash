@@ -1,0 +1,29 @@
+---
+import Footer from "@/components/Footer.astro";
+import Header from "@/components/Header.astro";
+import { buttonVariants } from "@/components/ui/button";
+import { getGuides } from "@/lib/content";
+import SiteLayout from "@/layouts/SiteLayout.astro";
+
+const guides = await getGuides();
+---
+
+<SiteLayout title="Page not found" description="The page you were looking for does not exist.">
+  <Header guides={guides} currentPath={Astro.url.pathname} />
+
+  <main class="mx-auto max-w-4xl px-6 pt-32 pb-24 text-center lg:px-8">
+    <p class="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">404</p>
+    <h1 class="mt-4 text-4xl font-heading tracking-[-0.08em] sm:text-5xl">
+      That page isn&apos;t here
+    </h1>
+    <p class="mx-auto mt-4 max-w-xl text-base leading-8 text-foreground/74">
+      The content lives on the home page and the guide routes. Jump back and pick the
+      path you meant to open.
+    </p>
+    <div class="mt-8 flex justify-center">
+      <a href="/" class={buttonVariants({ size: "lg" })}>Go home</a>
+    </div>
+  </main>
+
+  <Footer />
+</SiteLayout>

@@ -1,0 +1,182 @@
+---
+import { render } from "astro:content";
+import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
+
+import Footer from "@/components/Footer.astro";
+import Header from "@/components/Header.astro";
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { getGuideHref, getGuideNeighbors, getGuides, getReadingTime } from "@/lib/content";
+import SiteLayout from "@/layouts/SiteLayout.astro";
+
+export async function getStaticPaths() {
+  const guides = await getGuides();
+
+  return guides.map((entry) => ({
+    params: { slug: entry.data.slug },
+  }));
+}
+
+const guides = await getGuides();
+const entry = guides.find((guide) => guide.data.slug === Astro.params.slug);
+
+if (!entry) {
+  throw new Error(`Unknown guide slug: ${Astro.params.slug}`);
+}
+
+const { Content, headings } = await render(entry);
+const neighbors = getGuideNeighbors(guides, entry.data.slug);
+const relatedGuides = guides.filter((guide) => guide.data.slug !== entry.data.slug);
+---
+
+<SiteLayout title={entry.data.title} description={entry.data.description}>
+  <Header guides={guides} currentPath={Astro.url.pathname} />
+
+  <main class="pb-24">
+    <section class="border-b border-border/70">
+      <div class="mx-auto max-w-6xl px-6 pt-28 pb-14 lg:px-8">
+        <div class="flex flex-wrap items-center gap-3">
+          <Badge variant={entry.data.kind === "primary" ? "default" : "outline"}>
+            {entry.data.kind === "primary" ? "Main route" : "Alternative"}
+          </Badge>
+          <p class="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+            Updated {entry.data.updated}
+          </p>
+        </div>
+
+        <div class="mt-6 grid gap-10 lg:grid-cols-[1.15fr_0.85fr]">
+          <div class="space-y-5">
+            <p class="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+              {entry.data.eyebrow}
+            </p>
+            <h1 class="max-w-4xl text-4xl font-heading font-medium tracking-[-0.08em] text-balance sm:text-5xl">
+              {entry.data.title}
+            </h1>
+            <p class="max-w-2xl text-lg leading-8 text-foreground/76">
+              {entry.data.description}
+            </p>
+          </div>
+
+          <div class="space-y-4 border border-border/70 bg-background/70 p-5 backdrop-blur-sm">
+            <dl class="grid gap-4 sm:grid-cols-2">
+              <div class="space-y-1">
+                <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                  Read time
+                </dt>
+                <dd class="text-sm text-foreground/82">{getReadingTime(entry)}</dd>
+              </div>
+              <div class="space-y-1">
+                <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                  Route type
+                </dt>
+                <dd class="text-sm text-foreground/82">
+                  {entry.data.kind === "primary" ? "Fresh VPS workflow" : "Existing StartOS setup"}
+                </dd>
+              </div>
+            </dl>
+
+            {relatedGuides[0] && (
+              <div class="space-y-4">
+                <Separator />
+                <div class="space-y-2">
+                  <p class="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                    Related guide
+                  </p>
+                  <p class="text-sm leading-7 text-foreground/74">
+                    {relatedGuides[0].data.title}
+                  </p>
+                  <a
+                    href={getGuideHref(relatedGuides[0])}
+                    class="inline-flex items-center gap-2 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+                  >
+                    Open related guide
+                    <ArrowRightIcon className="size-4" aria-hidden="true" />
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mx-auto max-w-6xl px-6 py-14 lg:px-8">
+      <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <article class="content-prose order-2 lg:order-1">
+          <Content />
+        </article>
+
+        <aside class="order-1 lg:order-2">
+          <div class="sticky top-24 space-y-4 border border-border/70 bg-background/80 p-5 backdrop-blur-sm">
+            <div class="space-y-2">
+              <p class="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                On this page
+              </p>
+              <nav class="space-y-2 text-sm">
+                {headings
+                  .filter((heading) => heading.depth <= 2)
+                  .map((heading) => (
+                    <a
+                      href={`#${heading.slug}`}
+                      class="block text-foreground/70 transition-colors hover:text-foreground"
+                    >
+                      {heading.text}
+                    </a>
+                  ))}
+              </nav>
+            </div>
+
+            <Separator />
+
+            <div class="space-y-2">
+              <p class="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                Quick jump
+              </p>
+              <a href="/" class="block text-sm text-foreground/70 transition-colors hover:text-foreground">
+                Home
+              </a>
+              {relatedGuides.map((guide) => (
+                <a
+                  href={getGuideHref(guide)}
+                  class="block text-sm text-foreground/70 transition-colors hover:text-foreground"
+                >
+                  {guide.data.title}
+                </a>
+              ))}
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="mx-auto max-w-6xl px-6 pb-10 lg:px-8">
+      <div class="flex flex-wrap items-center justify-between gap-4 border-t border-border/70 pt-8">
+        {neighbors.previous ? (
+          <a
+            href={getGuideHref(neighbors.previous)}
+            class={buttonVariants({ variant: "outline", size: "lg" })}
+          >
+            <ArrowLeftIcon className="size-4" aria-hidden="true" />
+            {neighbors.previous.data.title}
+          </a>
+        ) : (
+          <span />
+        )}
+
+        {neighbors.next ? (
+          <a href={getGuideHref(neighbors.next)} class={buttonVariants({ size: "lg" })}>
+            {neighbors.next.data.title}
+            <ArrowRightIcon className="size-4" aria-hidden="true" />
+          </a>
+        ) : (
+          <a href="/" class={buttonVariants({ size: "lg" })}>
+            Back home
+          </a>
+        )}
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</SiteLayout>
