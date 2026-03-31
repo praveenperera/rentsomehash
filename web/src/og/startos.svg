@@ -1,0 +1,70 @@
+<svg width="1800" height="945" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="110" y1="60" x2="1100" y2="560" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#14161A" />
+      <stop offset="1" stop-color="#090A0D" />
+    </linearGradient>
+    <linearGradient id="panel" x1="130" y1="85" x2="1070" y2="545" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#191C21" stop-opacity="0.98" />
+      <stop offset="1" stop-color="#101216" stop-opacity="0.96" />
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(180 490) rotate(-26) scale(420 380)">
+      <stop stop-color="#FF7A18" stop-opacity="0.28" />
+      <stop offset="1" stop-color="#FF7A18" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="glow2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1030 110) rotate(180) scale(380 350)">
+      <stop stop-color="#FF7A18" stop-opacity="0.16" />
+      <stop offset="1" stop-color="#FF7A18" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1200" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF7A18" />
+      <stop offset="1" stop-color="#FF9F57" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#090A0D" />
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <rect width="1200" height="630" fill="url(#glow)" />
+  <rect width="1200" height="630" fill="url(#glow2)" />
+  <rect x="110" y="80" width="980" height="520" rx="28" fill="url(#panel)" stroke="rgba(255,255,255,0.12)" />
+  <rect x="110" y="80" width="980" height="5" rx="2.5" fill="url(#accent)" />
+
+  <rect x="160" y="130" width="235" height="46" rx="23" fill="#171A1F" stroke="rgba(255,255,255,0.16)" />
+  <text x="277" y="160" text-anchor="middle" fill="#E8EAEE" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="18" font-weight="600" letter-spacing="3">ALTERNATIVE ROUTE</text>
+
+  <text x="160" y="240" fill="#FF9F57" font-family="JetBrainsMono NF, SFMono-Regular, Menlo, monospace" font-size="28" font-weight="700" letter-spacing="2.5">EXISTING STARTOS SETUP</text>
+
+  <text x="160" y="325" fill="#F7F8FA" font-family="JetBrainsMono NF, SFMono-Regular, Menlo, monospace" font-size="52" font-weight="700" letter-spacing="-2">StartOS alternative</text>
+  <text x="160" y="390" fill="#F7F8FA" font-family="JetBrainsMono NF, SFMono-Regular, Menlo, monospace" font-size="52" font-weight="700" letter-spacing="-2">with Start Tunnel</text>
+
+  <text x="160" y="465" fill="#C9CED6" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="31" font-weight="500">Reuse your StartOS box, install the right packages and</text>
+  <text x="160" y="505" fill="#C9CED6" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="31" font-weight="500">route Braiins through Start Tunnel instead of a fresh VPS</text>
+
+  <g>
+    <rect x="160" y="545" width="122" height="28" rx="14" fill="#1A1D22" stroke="rgba(255,255,255,0.12)" />
+    <text x="221" y="563" text-anchor="middle" fill="#FF9F57" font-family="JetBrainsMono NF, SFMono-Regular, Menlo, monospace" font-size="14" font-weight="700" letter-spacing="1.5">STARTOS</text>
+
+    <rect x="294" y="545" width="142" height="28" rx="14" fill="#1A1D22" stroke="rgba(255,255,255,0.12)" />
+    <text x="365" y="563" text-anchor="middle" fill="#FF9F57" font-family="JetBrainsMono NF, SFMono-Regular, Menlo, monospace" font-size="14" font-weight="700" letter-spacing="1.5">START TUNNEL</text>
+
+    <rect x="448" y="545" width="112" height="28" rx="14" fill="#1A1D22" stroke="rgba(255,255,255,0.12)" />
+    <text x="504" y="563" text-anchor="middle" fill="#FF9F57" font-family="JetBrainsMono NF, SFMono-Regular, Menlo, monospace" font-size="14" font-weight="700" letter-spacing="1.5">BRAIINS</text>
+  </g>
+
+  <g opacity="0.95">
+    <circle cx="950" cy="260" r="44" fill="#13161A" stroke="#FF9F57" stroke-width="4" />
+    <circle cx="950" cy="260" r="12" fill="#FF9F57" />
+    <circle cx="855" cy="410" r="34" fill="#13161A" stroke="rgba(255,255,255,0.18)" stroke-width="4" />
+    <circle cx="855" cy="410" r="9" fill="#E8EAEE" fill-opacity="0.82" />
+    <circle cx="1045" cy="435" r="34" fill="#13161A" stroke="rgba(255,255,255,0.18)" stroke-width="4" />
+    <circle cx="1045" cy="435" r="9" fill="#E8EAEE" fill-opacity="0.82" />
+    <path d="M902 286L934 350" stroke="#FF9F57" stroke-width="5" stroke-linecap="round" />
+    <path d="M982 286L1010 375" stroke="#FF9F57" stroke-width="5" stroke-linecap="round" />
+    <path d="M890 410H1018" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="5" stroke-linecap="round" />
+    <path d="M900 500H1060" stroke="#FFFFFF" stroke-opacity="0.14" stroke-width="5" stroke-linecap="round" />
+    <path d="M900 525H1020" stroke="#FFFFFF" stroke-opacity="0.14" stroke-width="5" stroke-linecap="round" />
+  </g>
+
+  <text x="160" y="592" fill="#8F98A6" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" letter-spacing="3">RENTSOMEHASH.COM</text>
+  <text x="1040" y="592" text-anchor="end" fill="#AEB5C0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="16" font-weight="500">Guide 2 of 2</text>
+</svg>

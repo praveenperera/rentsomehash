@@ -1,0 +1,66 @@
+<svg width="1800" height="945" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="120" y1="60" x2="1080" y2="570" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#15171B" />
+      <stop offset="1" stop-color="#090A0C" />
+    </linearGradient>
+    <linearGradient id="panel" x1="150" y1="84" x2="1050" y2="540" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1B1E23" stop-opacity="0.98" />
+      <stop offset="1" stop-color="#111317" stop-opacity="0.96" />
+    </linearGradient>
+    <radialGradient id="glowLeft" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(130 90) rotate(32) scale(460 420)">
+      <stop stop-color="#FF7A18" stop-opacity="0.34" />
+      <stop offset="1" stop-color="#FF7A18" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="glowRight" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1120 590) rotate(180) scale(470 420)">
+      <stop stop-color="#FF7A18" stop-opacity="0.22" />
+      <stop offset="1" stop-color="#FF7A18" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1200" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF7A18" />
+      <stop offset="1" stop-color="#FF9F57" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#090A0C" />
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <rect width="1200" height="630" fill="url(#glowLeft)" />
+  <rect width="1200" height="630" fill="url(#glowRight)" />
+
+  <rect x="110" y="80" width="980" height="510" rx="28" fill="url(#panel)" stroke="rgba(255,255,255,0.12)" />
+  <rect x="110" y="80" width="980" height="5" rx="2.5" fill="url(#accent)" />
+
+  <rect x="160" y="130" width="230" height="46" rx="23" fill="#171A1F" stroke="rgba(255,255,255,0.16)" />
+  <text x="275" y="160" text-anchor="middle" fill="#E8EAEE" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="18" font-weight="600" letter-spacing="3">MECHANIC'S GUIDE</text>
+
+  <text x="160" y="275" fill="#F7F8FA" font-family="JetBrainsMono NF, SFMono-Regular, Menlo, monospace" font-size="80" font-weight="700" letter-spacing="-3">Rent Some</text>
+  <text x="160" y="355" fill="#F7F8FA" font-family="JetBrainsMono NF, SFMono-Regular, Menlo, monospace" font-size="80" font-weight="700" letter-spacing="-3">Hash</text>
+
+  <text x="160" y="430" fill="#C9CED6" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="32" font-weight="500">Braiins to DATUM to OCEAN guide</text>
+  <text x="160" y="472" fill="#C9CED6" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="32" font-weight="500">Rent hashpower, point it at DATUM, build blocks on OCEAN</text>
+
+  <rect x="160" y="500" width="308" height="44" rx="22" fill="#FF9F57" />
+  <text x="314" y="529" text-anchor="middle" fill="#14171B" font-family="JetBrainsMono NF, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="700" letter-spacing="2">READ THE MAIN GUIDE</text>
+
+  <g>
+    <rect x="810" y="150" width="92" height="34" rx="17" fill="#1A1D22" stroke="rgba(255,255,255,0.12)" />
+    <text x="856" y="172" text-anchor="middle" fill="#FF9F57" font-family="JetBrainsMono NF, SFMono-Regular, Menlo, monospace" font-size="15" font-weight="700" letter-spacing="1.5">BRAIINS</text>
+    <rect x="914" y="150" width="84" height="34" rx="17" fill="#1A1D22" stroke="rgba(255,255,255,0.12)" />
+    <text x="956" y="172" text-anchor="middle" fill="#FF9F57" font-family="JetBrainsMono NF, SFMono-Regular, Menlo, monospace" font-size="15" font-weight="700" letter-spacing="1.5">DATUM</text>
+    <rect x="1010" y="150" width="80" height="34" rx="17" fill="#1A1D22" stroke="rgba(255,255,255,0.12)" />
+    <text x="1050" y="172" text-anchor="middle" fill="#FF9F57" font-family="JetBrainsMono NF, SFMono-Regular, Menlo, monospace" font-size="15" font-weight="700" letter-spacing="1.5">OCEAN</text>
+  </g>
+
+  <g opacity="0.92">
+    <path d="M850 230H928" stroke="#FF9F57" stroke-width="3" stroke-linecap="round" />
+    <path d="M850 258H995" stroke="#FFFFFF" stroke-opacity="0.18" stroke-width="3" stroke-linecap="round" />
+    <path d="M850 286H958" stroke="#FFFFFF" stroke-opacity="0.18" stroke-width="3" stroke-linecap="round" />
+    <circle cx="815" cy="258" r="22" fill="#14171B" stroke="#FF9F57" stroke-width="3" />
+    <circle cx="815" cy="258" r="6" fill="#FF9F57" />
+    <circle cx="1015" cy="258" r="9" fill="#FF9F57" fill-opacity="0.9" />
+    <circle cx="975" cy="286" r="9" fill="#FF9F57" fill-opacity="0.5" />
+    <circle cx="939" cy="230" r="9" fill="#FF9F57" fill-opacity="0.7" />
+  </g>
+
+  <text x="160" y="578" fill="#8F98A6" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="18" font-weight="600" letter-spacing="3">RENTSOMEHASH.COM</text>
+</svg>
