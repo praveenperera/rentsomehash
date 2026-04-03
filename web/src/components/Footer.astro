@@ -1,5 +1,12 @@
 ---
+import type { GuideEntry } from "@/lib/content";
 import { Separator } from "@/components/ui/separator";
+
+interface Props {
+  guides: GuideEntry[];
+}
+
+const { guides } = Astro.props;
 ---
 
 <footer class="mx-auto max-w-6xl px-6 pb-10 lg:px-8">
@@ -8,10 +15,11 @@ import { Separator } from "@/components/ui/separator";
     <p>Rent Some Hash</p>
     <div class="flex flex-wrap gap-4">
       <a href="/" class="transition-colors hover:text-foreground">Home</a>
-      <a href="/guides/braiins-ocean/" class="transition-colors hover:text-foreground">
-        Main guide
-      </a>
-      <a href="/guides/startos/" class="transition-colors hover:text-foreground">StartOS</a>
+      {guides.map((guide) => (
+        <a href={`/guides/${guide.data.slug}/`} class="transition-colors hover:text-foreground">
+          {guide.data.navLabel}
+        </a>
+      ))}
     </div>
   </div>
 </footer>

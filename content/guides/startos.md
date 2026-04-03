@@ -5,6 +5,8 @@ slug: startos
 order: 2
 kind: alternative
 summary: "Reuse an existing StartOS setup, install the right packages, and route Braiins through Start Tunnel."
+navLabel: "StartOS"
+routeType: "Existing StartOS setup"
 eyebrow: "Alternative route"
 featured: false
 updated: "2026-03-29"

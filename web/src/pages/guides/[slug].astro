@@ -31,6 +31,7 @@ const relatedGuides = guides.filter((guide) => guide.data.slug !== entry.data.sl
 const ogImageBySlug: Record<string, string> = {
   "braiins-ocean": "/images/rentsomehash-og-braiins-ocean.png",
   startos: "/images/rentsomehash-og-startos.png",
+  umbrel: "/images/rentsomehash-og-umbrel.png",
 };
 const ogImage = ogImageBySlug[entry.data.slug] ?? "/og.png";
 ---
@@ -75,9 +76,7 @@ const ogImage = ogImageBySlug[entry.data.slug] ?? "/og.png";
                 <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                   Route type
                 </dt>
-                <dd class="text-sm text-foreground/82">
-                  {entry.data.kind === "primary" ? "Fresh VPS workflow" : "Existing StartOS setup"}
-                </dd>
+                <dd class="text-sm text-foreground/82">{entry.data.routeType}</dd>
               </div>
             </dl>
 
@@ -198,5 +197,5 @@ const ogImage = ogImageBySlug[entry.data.slug] ?? "/og.png";
     </section>
   </main>
 
-  <Footer />
+  <Footer guides={guides} />
 </SiteLayout>

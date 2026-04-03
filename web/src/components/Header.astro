@@ -13,7 +13,7 @@ const navLinks = [
   { href: "/", label: "Home" },
   ...guides.map((guide) => ({
     href: `/guides/${guide.data.slug}/`,
-    label: guide.data.kind === "primary" ? "Main guide" : "StartOS",
+    label: guide.data.navLabel,
   })),
 ];
 ---

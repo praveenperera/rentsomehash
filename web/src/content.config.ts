@@ -44,6 +44,8 @@ const guides = defineCollection({
     order: z.number().int(),
     kind: z.enum(["primary", "alternative"]),
     summary: z.string(),
+    navLabel: z.string(),
+    routeType: z.string(),
     eyebrow: z.string(),
     featured: z.boolean().default(false),
     updated: z.string(),

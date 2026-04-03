@@ -85,7 +85,7 @@ const { Content } = await render(home);
               <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                 Alternative
               </dt>
-              <dd class="text-sm text-foreground/82">StartOS + Start Tunnel guide included</dd>
+              <dd class="text-sm text-foreground/82">StartOS + Umbrel guides included</dd>
             </div>
           </dl>
           <a
@@ -138,7 +138,7 @@ const { Content } = await render(home);
       </div>
     </section>
 
-    <section class="border-y border-border/70 bg-muted/20">
+    <section id="routes" class="border-y border-border/70 bg-muted/20">
       <div class="mx-auto max-w-6xl px-6 py-16 lg:px-8">
         <div class="grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
           <div class="space-y-5">
@@ -150,8 +150,8 @@ const { Content } = await render(home);
             </h2>
             <p class="max-w-xl text-base leading-8 text-foreground/74">
               The main route assumes a fresh Linux VPS and gets everything onto one
-              machine. The StartOS route is there if you already have home hardware and
-              want to route Braiins traffic through Start Tunnel instead.
+              machine. The alternative routes are there if you already have home hardware
+              and want to reuse a StartOS or Umbrel setup instead.
             </p>
           </div>
 
@@ -200,5 +200,5 @@ const { Content } = await render(home);
     </section>
   </main>
 
-  <Footer />
+  <Footer guides={guides} />
 </SiteLayout>

@@ -34,6 +34,7 @@ Current guides:
 
 - [`content/guides/braiins-ocean.md`](./content/guides/braiins-ocean.md)
 - [`content/guides/startos.md`](./content/guides/startos.md)
+- [`content/guides/umbrel.md`](./content/guides/umbrel.md)
 
 Each guide needs frontmatter that matches the guides schema in [`web/src/content.config.ts`](./web/src/content.config.ts):
 
@@ -43,6 +44,8 @@ Each guide needs frontmatter that matches the guides schema in [`web/src/content
 - `order`
 - `kind`
 - `summary`
+- `navLabel`
+- `routeType`
 - `eyebrow`
 - `featured`
 - `updated`
