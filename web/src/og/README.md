@@ -1,6 +1,8 @@
 # OG Card Sources
 
-These SVGs are the source of truth for the social cards.
+`home.svg` is still hand-authored.
+
+`braiins-ocean.svg`, `startos.svg`, and `umbrel.svg` are generated from [`og.config.tsx`](/Users/praveen/code/rentsomehash/web/src/og/og.config.tsx) via `ogkit`, with TSX as the layout source of truth.
 
 Export them to:
 
