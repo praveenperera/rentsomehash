@@ -5,6 +5,8 @@ slug: braiins-ocean
 order: 1
 kind: primary
 summary: "Fresh Linux VPS workflow for bringing up a node, running DATUM, and creating the Braiins bid correctly."
+navLabel: "Main guide"
+routeType: "Fresh VPS workflow"
 eyebrow: "Main route"
 featured: true
 updated: "2026-03-29"

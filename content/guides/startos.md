@@ -1,13 +1,15 @@
 ---
-title: "StartOS alternative with Start Tunnel"
+title: "StartOS route with Start Tunnel"
 description: "Use this route if you already run StartOS and would rather point Braiins at your home setup through Start Tunnel."
 slug: startos
 order: 2
 kind: alternative
 summary: "Reuse an existing StartOS setup, install the right packages, and route Braiins through Start Tunnel."
-eyebrow: "Alternative route"
+navLabel: "StartOS"
+routeType: "Existing StartOS setup"
+eyebrow: "Home node route"
 featured: false
-updated: "2026-03-29"
+updated: "2026-04-03"
 ---
 
 ## When this route makes sense
@@ -36,6 +38,12 @@ Grab the latest release here:
 <https://github.com/dathonohm/knots-startos/releases>
 
 Install that package on your StartOS box.
+
+StartOS already exposes the Knots settings relevant to DATUM, including `blocknotify`, `blockmaxsize`, `blockmaxweight`, `maxmempool`, and `blockreconstructionextratxn`.
+
+DATUM on StartOS also auto-configures `blocknotify`, so this is not the same gap as Umbrel.
+
+If you want the higher DATUM-style tuning values, still review the Knots advanced settings before you move on, especially `maxmempool` and `blockreconstructionextratxn`.
 
 ## 2. Install the DATUM gateway
 

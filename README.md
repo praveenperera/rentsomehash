@@ -34,6 +34,7 @@ Current guides:
 
 - [`content/guides/braiins-ocean.md`](./content/guides/braiins-ocean.md)
 - [`content/guides/startos.md`](./content/guides/startos.md)
+- [`content/guides/umbrel.md`](./content/guides/umbrel.md)
 
 Each guide needs frontmatter that matches the guides schema in [`web/src/content.config.ts`](./web/src/content.config.ts):
 
@@ -43,6 +44,8 @@ Each guide needs frontmatter that matches the guides schema in [`web/src/content
 - `order`
 - `kind`
 - `summary`
+- `navLabel`
+- `routeType`
 - `eyebrow`
 - `featured`
 - `updated`
@@ -65,12 +68,14 @@ Edit the `order` field in each guide file. Guides are sorted numerically in [`we
 
 ### Change Navigation Labels Or Fixed UI Copy
 
-Some content is intentionally still code-owned:
+Guide navigation and footer labels are content-driven:
 
-- header nav labels in [`web/src/components/Header.astro`](./web/src/components/Header.astro)
-- footer links in [`web/src/components/Footer.astro`](./web/src/components/Footer.astro)
+- edit the `navLabel` field in the relevant guide frontmatter under [`content/guides/`](./content/guides/) to change how that guide appears in the header and footer
+
+Some other content is intentionally still code-owned:
+
 - homepage hero headline and several section labels in [`web/src/pages/index.astro`](./web/src/pages/index.astro)
-- guide page labels like `Main route`, `Alternative`, and `Related guide` in [`web/src/pages/guides/[slug].astro`](./web/src/pages/guides/[slug].astro)
+- guide page labels like `Main route`, `Home node`, and `Related guide` in [`web/src/pages/guides/[slug].astro`](./web/src/pages/guides/[slug].astro)
 
 If you want those to become editable content instead of code edits, the content schema would need to be expanded first.
 
