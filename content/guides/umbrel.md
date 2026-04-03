@@ -9,7 +9,7 @@ navLabel: "Umbrel"
 routeType: "Existing Umbrel setup"
 eyebrow: "Home node route"
 featured: false
-updated: "2026-04-02"
+updated: "2026-04-03"
 ---
 
 ## When this route makes sense
@@ -50,7 +50,22 @@ Install DATUM from the Umbrel App Store:
 
 DATUM depends on Bitcoin Knots and connects to it automatically after installation.
 
-## 3. Configure DATUM before you test anything
+## 3. Review the Knots settings before you test anything
+
+Umbrel wires DATUM to Bitcoin Knots automatically, but you should still review the Knots block template and mempool settings before you point hashpower at it.
+
+If Umbrel has not already set them, add at least these options in Knots:
+
+```text
+maxmempool=1000
+blockreconstructionextratxn=1000000
+blockmaxsize=3985000
+blockmaxweight=3985000
+```
+
+After changing those values, restart Bitcoin Knots and make sure it comes back cleanly before you move on.
+
+## 4. Configure DATUM before you test anything
 
 Two details matter immediately:
 
@@ -59,7 +74,7 @@ Two details matter immediately:
 
 If you need the in-app credentials to change settings, right-click the DATUM app icon on the Umbrel home screen and choose `Show default credentials`.
 
-## 4. Find the Umbrel box IP on your local network
+## 5. Find the Umbrel box IP on your local network
 
 You can find the box IP in `Settings` on the umbrelOS home screen.
 
@@ -71,7 +86,7 @@ stratum+tcp://your-umbrel-lan-ip:23334
 
 That local address is useful for checking that DATUM is up, but it is not what Braiins should use from outside your house.
 
-## 5. Forward port 23334 from your router to Umbrel
+## 6. Forward port 23334 from your router to Umbrel
 
 Set a router port forward so inbound TCP traffic on port `23334` goes to the Umbrel machine on port `23334`.
 
@@ -83,11 +98,11 @@ If your router lets you reserve DHCP leases, it is worth pinning the Umbrel box 
 - if your router or firewall supports it, restrict allowed source IP ranges instead of exposing the port broadly
 - avoid enabling broad UPnP auto-exposure for this service, and disable any automatic rule that opens `23334` wider than intended
 
-## 6. Point Braiins at the endpoint you actually expose
+## 7. Point Braiins at the endpoint you actually expose
 
 There are two reasonable ways to do this once the port forward is live.
 
-### 6a. If your router supports DDNS
+### 7a. If your router supports DDNS
 
 Most home connections do not have a stable public IP, and many routers support DDNS with a simple hostname setup.
 
@@ -105,7 +120,7 @@ Simple ways to check include using a remote machine, an online port-check tool, 
 
 If the check fails, fix your DDNS or port-forwarding setup before moving on.
 
-### 6b. If you are using the raw public IP
+### 7b. If you are using the raw public IP
 
 If you are not using DDNS, Braiins should use your public home IP on port `23334`:
 
@@ -117,7 +132,7 @@ Replace `your-public-ip` with the actual public IP of your home connection.
 
 If your ISP changes that IP, Braiins will need the new one.
 
-## 7. Use the right Braiins pool username
+## 8. Use the right Braiins pool username
 
 Use the Bitcoin address receiving OCEAN rewards as the username, optionally followed by a worker name after a period.
 
