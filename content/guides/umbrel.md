@@ -79,6 +79,10 @@ The important part is that the forward targets the Umbrel box running DATUM, not
 
 If your router lets you reserve DHCP leases, it is worth pinning the Umbrel box to one local IP so the forward does not silently break later.
 
+- make the forward TCP-only, not TCP+UDP
+- if your router or firewall supports it, restrict allowed source IP ranges instead of exposing the port broadly
+- avoid enabling broad UPnP auto-exposure for this service, and disable any automatic rule that opens `23334` wider than intended
+
 ## 6. Point Braiins at the endpoint you actually expose
 
 There are two reasonable ways to do this once the port forward is live.
@@ -94,6 +98,12 @@ stratum+tcp://hostname.domain.com:23334
 ```
 
 Replace `hostname.domain.com` with the actual DDNS hostname your router keeps updated.
+
+Before proceeding, verify from a network outside your home LAN that `hostname.domain.com:23334` or `your-public-ip:23334` accepts connections.
+
+Simple ways to check include using a remote machine, an online port-check tool, or running a remote test such as `telnet hostname.domain.com 23334` or `curl telnet://hostname.domain.com:23334`.
+
+If the check fails, fix your DDNS or port-forwarding setup before moving on.
 
 ### 6b. If you are using the raw public IP
 
