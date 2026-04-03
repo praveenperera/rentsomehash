@@ -52,18 +52,27 @@ DATUM depends on Bitcoin Knots and connects to it automatically after installati
 
 ## 3. Review the Knots settings before you test anything
 
-Umbrel wires DATUM to Bitcoin Knots automatically, but you should still review the Knots block template and mempool settings before you point hashpower at it.
+Umbrel wires DATUM to Bitcoin Knots automatically, but you should still review the Knots node settings before you point hashpower at it.
 
-If Umbrel has not already set them, add at least these options in Knots:
+The upstream DATUM README currently recommends reserving some block space for the pool payout transaction with:
 
 ```text
-maxmempool=1000
-blockreconstructionextratxn=1000000
 blockmaxsize=3985000
 blockmaxweight=3985000
 ```
 
-After changing those values, restart Bitcoin Knots and make sure it comes back cleanly before you move on.
+It also recommends these additional node settings:
+
+```text
+maxmempool=1000
+blockreconstructionextratxn=1000000
+```
+
+The upstream DATUM README also requires block notifications from your node. If the Umbrel package does not handle that for you, review DATUM's node configuration guidance before using this route:
+
+<https://github.com/OCEAN-xyz/datum_gateway?tab=readme-ov-file#node-configuration>
+
+After changing any Knots values, restart Bitcoin Knots and make sure it comes back cleanly before you move on.
 
 ## 4. Configure DATUM before you test anything
 

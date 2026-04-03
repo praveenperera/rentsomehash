@@ -43,7 +43,9 @@ StartOS already exposes the Knots settings relevant to DATUM, including `blockno
 
 DATUM on StartOS also auto-configures `blocknotify`, so this is not the same gap as Umbrel.
 
-If you want the higher DATUM-style tuning values, still review the Knots advanced settings before you move on, especially `maxmempool` and `blockreconstructionextratxn`.
+The StartOS Knots defaults already line up with DATUM's recommended block space reservation values for `blockmaxsize` and `blockmaxweight`.
+
+If you want the higher DATUM-style tuning values beyond that, still review the Knots advanced settings before you move on, especially `maxmempool` and `blockreconstructionextratxn`.
 
 ## 2. Install the DATUM gateway
 
