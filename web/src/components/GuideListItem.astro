@@ -15,7 +15,7 @@ const { guide } = Astro.props;
 <a href={getGuideHref(guide)} class="group block px-5 py-5 transition-colors hover:bg-muted/30">
   <div class="flex flex-wrap items-center gap-3">
     <Badge variant={guide.data.kind === "primary" ? "default" : "outline"}>
-      {guide.data.kind === "primary" ? "Main route" : "Alternative"}
+      {guide.data.kind === "primary" ? "Main route" : "Home node"}
     </Badge>
     <p class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
       {getReadingTime(guide)}

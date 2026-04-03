@@ -1,5 +1,5 @@
 ---
-title: "StartOS alternative with Start Tunnel"
+title: "StartOS route with Start Tunnel"
 description: "Use this route if you already run StartOS and would rather point Braiins at your home setup through Start Tunnel."
 slug: startos
 order: 2
@@ -7,7 +7,7 @@ kind: alternative
 summary: "Reuse an existing StartOS setup, install the right packages, and route Braiins through Start Tunnel."
 navLabel: "StartOS"
 routeType: "Existing StartOS setup"
-eyebrow: "Alternative route"
+eyebrow: "Home node route"
 featured: false
 updated: "2026-03-29"
 ---

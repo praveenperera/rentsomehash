@@ -1,5 +1,5 @@
 ---
-title: "Umbrel alternative with router port forwarding"
+title: "Umbrel route with router port forwarding"
 description: "Use this route if you already run Umbrel and would rather reuse that box than build a fresh VPS around DATUM."
 slug: umbrel
 order: 3
@@ -7,7 +7,7 @@ kind: alternative
 summary: "Reuse an existing Umbrel setup, install Bitcoin Knots and DATUM, then forward port 23334 from your router to Braiins."
 navLabel: "Umbrel"
 routeType: "Existing Umbrel setup"
-eyebrow: "Alternative route"
+eyebrow: "Home node route"
 featured: false
 updated: "2026-04-02"
 ---

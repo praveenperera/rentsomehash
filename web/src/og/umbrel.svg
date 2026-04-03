@@ -30,11 +30,11 @@
   <rect x="110" y="80" width="980" height="5" rx="2.5" fill="url(#accent)" />
 
   <rect x="160" y="130" width="235" height="46" rx="23" fill="#171A1F" stroke="rgba(255,255,255,0.16)" />
-  <text x="277" y="160" text-anchor="middle" fill="#E8EAEE" font-family="sans-serif" font-size="18" font-weight="600" letter-spacing="3">ALTERNATIVE ROUTE</text>
+  <text x="277" y="160" text-anchor="middle" fill="#E8EAEE" font-family="sans-serif" font-size="18" font-weight="600" letter-spacing="3">HOME NODE ROUTE</text>
 
   <text x="160" y="240" fill="#FF9F57" font-family="monospace" font-size="28" font-weight="700" letter-spacing="2.5">EXISTING UMBREL SETUP</text>
 
-  <text x="160" y="325" fill="#F7F8FA" font-family="monospace" font-size="52" font-weight="700" letter-spacing="-2">Umbrel alternative</text>
+  <text x="160" y="325" fill="#F7F8FA" font-family="monospace" font-size="52" font-weight="700" letter-spacing="-2">Umbrel route</text>
   <text x="160" y="390" fill="#F7F8FA" font-family="monospace" font-size="52" font-weight="700" letter-spacing="-2">with port forwarding</text>
 
   <text x="160" y="465" fill="#C9CED6" font-family="sans-serif" font-size="31" font-weight="500">Reuse your Umbrel box, install Bitcoin Knots and DATUM,</text>

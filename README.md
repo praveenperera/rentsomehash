@@ -73,7 +73,7 @@ Some content is intentionally still code-owned:
 - header nav labels in [`web/src/components/Header.astro`](./web/src/components/Header.astro)
 - footer links in [`web/src/components/Footer.astro`](./web/src/components/Footer.astro)
 - homepage hero headline and several section labels in [`web/src/pages/index.astro`](./web/src/pages/index.astro)
-- guide page labels like `Main route`, `Alternative`, and `Related guide` in [`web/src/pages/guides/[slug].astro`](./web/src/pages/guides/[slug].astro)
+- guide page labels like `Main route`, `Home node`, and `Related guide` in [`web/src/pages/guides/[slug].astro`](./web/src/pages/guides/[slug].astro)
 
 If you want those to become editable content instead of code edits, the content schema would need to be expanded first.
 
