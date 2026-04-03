@@ -16,7 +16,7 @@ updated: "2026-04-02"
 
 Use this route if you already run Umbrel and want to keep the node and DATUM on hardware you already trust.
 
-This is the simpler Umbrel version of the alternative workflow:
+This is the simpler Umbrel version of the home node workflow:
 
 - Install Bitcoin Knots on Umbrel
 - Install DATUM on Umbrel
@@ -26,7 +26,7 @@ This is the simpler Umbrel version of the alternative workflow:
 
 ## Why port forwarding is the straightforward route here
 
-Umbrel's DATUM instructions are written around your Umbrel box listening on port `23334`.
+On Umbrel, DATUM listens on port `23334`.
 
 On your local network, miners point at the Umbrel box IP directly. For Braiins, you need that same DATUM port reachable from the internet, so the straightforward route is to forward `23334` from your router to the Umbrel machine.
 
@@ -38,7 +38,7 @@ Install Bitcoin Knots from the Umbrel App Store:
 
 <https://apps.umbrel.com/app/bitcoin-knots>
 
-Umbrel's current app notes say the Knots app includes BIP-110 in the version selector, so if you want that build, select the BIP-110 version in the app settings.
+The Knots app includes BIP-110 in the version selector, so if you want that build, select the BIP-110 version in the app settings.
 
 If your box is still syncing, let that finish before you try to use DATUM for anything serious.
 
@@ -48,20 +48,20 @@ Install DATUM from the Umbrel App Store:
 
 <https://apps.umbrel.com/app/datum>
 
-Umbrel lists DATUM as depending on Bitcoin Knots, and says it connects to the Knots app automatically after installation.
+DATUM depends on Bitcoin Knots and connects to it automatically after installation.
 
 ## 3. Configure DATUM before you test anything
 
-Umbrel's DATUM page calls out two details that matter immediately:
+Two details matter immediately:
 
 - DATUM does not fully initialize until you add your Bitcoin payout address in the app's `Config` tab
 - Safari currently cannot be used to change DATUM settings there, so use another browser
 
-If you need the in-app credentials to change settings, Umbrel says you can get them by right-clicking the DATUM app icon on the Umbrel home screen and choosing `Show default credentials`.
+If you need the in-app credentials to change settings, right-click the DATUM app icon on the Umbrel home screen and choose `Show default credentials`.
 
 ## 4. Find the Umbrel box IP on your local network
 
-Umbrel says the box IP is available in `Settings` on the umbrelOS home screen.
+You can find the box IP in `Settings` on the umbrelOS home screen.
 
 On your local network, DATUM listens on:
 
@@ -109,7 +109,7 @@ If your ISP changes that IP, Braiins will need the new one.
 
 ## 7. Use the right Braiins pool username
 
-Umbrel's DATUM instructions say the username should be the Bitcoin address receiving OCEAN rewards, optionally followed by a worker name after a period.
+Use the Bitcoin address receiving OCEAN rewards as the username, optionally followed by a worker name after a period.
 
 It should look like:
 
@@ -137,6 +137,6 @@ If you need the exact Braiins field-by-field guidance, use the main guide alongs
 ## Why use this route
 
 - You already have an Umbrel box you trust, so you can reuse it instead of building a separate VPS stack
-- Umbrel's DATUM app already expects to sit on top of Bitcoin Knots and speak Stratum on port `23334`
+- DATUM on Umbrel already sits on top of Bitcoin Knots and speaks Stratum on port `23334`
 - Port forwarding keeps the setup simple if your goal is just to make DATUM reachable by Braiins
 - The node and DATUM stay on hardware you already control, which is the entire reason to take this route
