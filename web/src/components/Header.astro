@@ -1,6 +1,7 @@
 ---
 import type { GuideEntry } from "@/lib/content";
 import { buttonVariants } from "@/components/ui/button";
+import { getGuideHref } from "@/lib/content";
 import ThemeToggle from "@/components/ThemeToggle";
 
 interface Props {
@@ -12,7 +13,7 @@ const { guides, currentPath } = Astro.props;
 const navLinks = [
   { href: "/", label: "Home" },
   ...guides.map((guide) => ({
-    href: `/guides/${guide.data.slug}/`,
+    href: getGuideHref(guide),
     label: guide.data.navLabel,
   })),
 ];
@@ -40,8 +41,8 @@ const navLinks = [
     </nav>
 
     <div class="hidden items-center gap-3 md:flex">
-      <a href="/guides/braiins-ocean/" class={buttonVariants({ variant: "outline", size: "sm" })}>
-        Open guide
+      <a href="/#node-guides" class={buttonVariants({ variant: "outline", size: "sm" })}>
+        Choose a node guide
       </a>
       <ThemeToggle client:load />
     </div>

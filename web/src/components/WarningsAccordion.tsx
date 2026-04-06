@@ -19,7 +19,7 @@ export default function WarningsAccordion({
 }: WarningsAccordionProps) {
   return (
     <Accordion
-      className="border border-border/70 bg-background/70"
+      className="home-warning-accordion border border-border/70 bg-background/70"
       defaultValue={warnings[0] ? [warnings[0].title] : []}
     >
       {warnings.map((warning) => (

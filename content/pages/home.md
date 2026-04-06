@@ -1,18 +1,16 @@
 ---
 title: "Rent Some Hash: Braiins to DATUM to OCEAN guide"
-description: "Mechanic's guide for renting hashpower on Braiins, pointing it at DATUM, and using it to make your own blocks on OCEAN."
+description: "Mechanic's guide for setting up a DATUM node first, then using Braiins hashpower to point at it and make your own blocks on OCEAN."
 eyebrow: "Mechanic's guide"
-primaryCtaLabel: "Read the main guide"
-primaryCtaHref: "/guides/braiins-ocean/"
-secondaryCtaLabel: "Home node guides"
-secondaryCtaHref: "/#routes"
+primaryCtaLabel: "Choose a node guide"
+primaryCtaHref: "/#node-guides"
+secondaryCtaLabel: "Open Braiins guide"
+secondaryCtaHref: "/guides/braiins-ocean/"
 highlights:
-  - title: "Get the node and DATUM online first"
-    body: "The longest part is getting the box up and syncing. The main route assumes a fresh Linux VPS and builds a combined node + DATUM machine so the parts already fit together."
-  - title: "Braiins is just the hashpower side"
-    body: "Once the box is ready, Braiins is mostly account setup, funding, and entering the right pool URL and username without typos."
-  - title: "Use the home node guides (StartOS, Umbrel) if you already run home hardware"
-    body: "If you already trust a home box more than a fresh VPS, use the home node guides and expose DATUM from the box you already run."
+  - title: "Pick one node setup and make DATUM reachable"
+    body: "Use the VPS guide if you are starting from zero and want the path that fits the most people. If you already run StartOS or Umbrel hardware you trust, it usually makes more sense to use that guide instead. That guide should leave you with a synced node, a running DATUM gateway, and a public endpoint or hostname that Braiins can actually reach."
+  - title: "Use the Braiins guide once the node is ready"
+    body: "The Braiins side is shared: create the account, fund it, enter the right mining pool URL, and use the correct username format without typos."
 warnings:
   - title: "Bring a Bitcoin address you actually control"
     body: "The installer asks for `POOL_ADDRESS`, and that has to be a valid Bitcoin address with keys you control. If you change DATUM behavior later, rewards can still flow there."
@@ -24,4 +22,4 @@ warnings:
 
 This is a cleaned-up version of Mechanic's workflow for getting from zero to a working Braiins-to-OCEAN setup.
 
-Start with the main route if you want the shortest path and are happy to spin up a Linux VPS just for this. If you already run StartOS or Umbrel, skip to the home node guides and reuse what you already have.
+Start with one node guide. Once that guide leaves you with a working DATUM endpoint, move to the shared Braiins guide and create the bid there.

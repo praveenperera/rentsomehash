@@ -32,9 +32,10 @@ Each guide is a Markdown file in [`content/guides/`](./content/guides).
 
 Current guides:
 
-- [`content/guides/braiins-ocean.md`](./content/guides/braiins-ocean.md)
+- [`content/guides/vps.md`](./content/guides/vps.md)
 - [`content/guides/startos.md`](./content/guides/startos.md)
 - [`content/guides/umbrel.md`](./content/guides/umbrel.md)
+- [`content/guides/braiins-ocean.md`](./content/guides/braiins-ocean.md)
 
 Each guide needs frontmatter that matches the guides schema in [`web/src/content.config.ts`](./web/src/content.config.ts):
 
@@ -42,10 +43,10 @@ Each guide needs frontmatter that matches the guides schema in [`web/src/content
 - `description`
 - `slug`
 - `order`
-- `kind`
+- `stage`
 - `summary`
 - `navLabel`
-- `routeType`
+- `setupType`
 - `eyebrow`
 - `featured`
 - `updated`
@@ -57,14 +58,14 @@ Guide body content is regular Markdown below the frontmatter.
 1. Create a new Markdown file in [`content/guides/`](./content/guides)
 2. Add all required frontmatter fields
 3. Pick a unique `slug`
-4. Set `order` to control the list order
+4. Set `order` to control the order inside its stage
 5. Run `just check`
 
 The guide route is generated from the `slug` field, so a guide with `slug: foo` becomes `/guides/foo/`.
 
 ### Reorder Guides
 
-Edit the `order` field in each guide file. Guides are sorted numerically in [`web/src/lib/content.ts`](./web/src/lib/content.ts).
+Edit the `order` field in each guide file. Guides are grouped by `stage` first, then sorted numerically by `order` in [`web/src/lib/content.ts`](./web/src/lib/content.ts).
 
 ### Change Navigation Labels Or Fixed UI Copy
 
@@ -75,7 +76,7 @@ Guide navigation and footer labels are content-driven:
 Some other content is intentionally still code-owned:
 
 - homepage hero headline and several section labels in [`web/src/pages/index.astro`](./web/src/pages/index.astro)
-- guide page labels like `Main route`, `Home node`, and `Related guide` in [`web/src/pages/guides/[slug].astro`](./web/src/pages/guides/[slug].astro)
+- guide page labels and stage-aware CTA copy in [`web/src/pages/guides/[slug].astro`](./web/src/pages/guides/[slug].astro)
 
 If you want those to become editable content instead of code edits, the content schema would need to be expanded first.
 

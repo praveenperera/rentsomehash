@@ -7,12 +7,12 @@ interface StartOsCardProps {
 export function StartOsCard({ artSrc }: StartOsCardProps) {
   return (
     <GuideCard
-      route="Home node route"
+      route="Node setup"
       eyebrow="Existing StartOS setup"
-      title="StartOS route with Start Tunnel"
-      subtitle="Reuse your StartOS box, install the right packages, and route Braiins through Start Tunnel instead of rebuilding on a fresh VPS"
-      pills={["STARTOS", "START TUNNEL", "BRAIINS"]}
-      footerLabel="Guide 2 of 3"
+      title="StartOS node setup for DATUM"
+      subtitle="Reuse your StartOS box, install the right packages, and expose DATUM through Start Tunnel or your router"
+      pills={["STARTOS", "DATUM", "START TUNNEL"]}
+      footerLabel="Guide 2 of 4"
       renderIllustration={({ height, width }) => (
         <img src={artSrc} width={width} height={height} />
       )}

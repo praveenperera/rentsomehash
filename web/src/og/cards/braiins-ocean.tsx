@@ -7,12 +7,12 @@ interface BraiinsOceanCardProps {
 export function BraiinsOceanCard({ artSrc }: BraiinsOceanCardProps) {
   return (
     <GuideCard
-      route="Main route"
-      eyebrow="Fresh VPS workflow"
-      title="Braiins to OCEAN on a fresh DATUM box"
-      subtitle="Rent a Linux VPS and install the combined node and DATUM box. Wait for sync, then point Braiins hashpower at it"
-      pills={["LINUX VPS", "NODE + DATUM", "BRAIINS BID"]}
-      footerLabel="Guide 1 of 3"
+      route="Braiins setup"
+      eyebrow="Shared Braiins setup"
+      title="Braiins hashpower setup for DATUM and OCEAN"
+      subtitle="Once your node is ready, create the account, fund it, and point the bid at your DATUM endpoint"
+      pills={["BRAIINS", "FUND ACCOUNT", "CREATE BID"]}
+      footerLabel="Guide 4 of 4"
       renderIllustration={({ height, width }) => (
         <img src={artSrc} width={width} height={height} />
       )}

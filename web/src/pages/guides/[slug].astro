@@ -7,7 +7,14 @@ import Header from "@/components/Header.astro";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { getGuideHref, getGuideNeighbors, getGuides, getReadingTime } from "@/lib/content";
+import {
+  getGuideHref,
+  getGuideStageLabel,
+  getGuides,
+  getNodeGuides,
+  getPrimaryBraiinsGuide,
+  getReadingTime,
+} from "@/lib/content";
 import SiteLayout from "@/layouts/SiteLayout.astro";
 
 export async function getStaticPaths() {
@@ -26,10 +33,13 @@ if (!entry) {
 }
 
 const { Content, headings } = await render(entry);
-const neighbors = getGuideNeighbors(guides, entry.data.slug);
-const relatedGuides = guides.filter((guide) => guide.data.slug !== entry.data.slug);
+const nodeGuides = getNodeGuides(guides);
+const braiinsGuide = getPrimaryBraiinsGuide(guides);
+const isNodeGuide = entry.data.stage === "node";
+const otherNodeGuides = nodeGuides.filter((guide) => guide.data.slug !== entry.data.slug);
 const ogImageBySlug: Record<string, string> = {
   "braiins-ocean": "/images/rentsomehash-og-braiins-ocean.png",
+  vps: "/images/rentsomehash-og-vps.png",
   startos: "/images/rentsomehash-og-startos.png",
   umbrel: "/images/rentsomehash-og-umbrel.png",
 };
@@ -43,8 +53,8 @@ const ogImage = ogImageBySlug[entry.data.slug] ?? "/og.png";
     <section class="border-b border-border/70">
       <div class="mx-auto max-w-6xl px-6 pt-28 pb-14 lg:px-8">
         <div class="flex flex-wrap items-center gap-3">
-          <Badge variant={entry.data.kind === "primary" ? "default" : "outline"}>
-            {entry.data.kind === "primary" ? "Main route" : "Home node"}
+          <Badge variant={entry.data.stage === "braiins" ? "default" : "outline"}>
+            {getGuideStageLabel(entry)}
           </Badge>
           <p class="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
             Updated {entry.data.updated}
@@ -74,27 +84,50 @@ const ogImage = ogImageBySlug[entry.data.slug] ?? "/og.png";
               </div>
               <div class="space-y-1">
                 <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                  Route type
+                  Setup type
                 </dt>
-                <dd class="text-sm text-foreground/82">{entry.data.routeType}</dd>
+                <dd class="text-sm text-foreground/82">{entry.data.setupType}</dd>
               </div>
             </dl>
 
-            {relatedGuides[0] && (
+            {isNodeGuide && braiinsGuide && (
               <div class="space-y-4">
                 <Separator />
                 <div class="space-y-2">
                   <p class="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
-                    Related guide
+                    Next step
                   </p>
                   <p class="text-sm leading-7 text-foreground/74">
-                    {relatedGuides[0].data.title}
+                    Once this guide gives you a working endpoint, move to the shared Braiins guide.
                   </p>
                   <a
-                    href={getGuideHref(relatedGuides[0])}
+                    href={getGuideHref(braiinsGuide)}
                     class="inline-flex items-center gap-2 text-sm font-medium text-primary transition-colors hover:text-primary/80"
                   >
-                    Open related guide
+                    Open the Braiins guide
+                    <ArrowRightIcon className="size-4" aria-hidden="true" />
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {!isNodeGuide && (
+              <div class="space-y-4">
+                <Separator />
+                <div class="space-y-2">
+                  <p class="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                    Start here first
+                  </p>
+                  <p class="text-sm leading-7 text-foreground/74">
+                    Finish one node guide before you do any of the Braiins steps on this page. If
+                    you are starting from zero, the VPS guide is the cleanest default. If you
+                    already run StartOS or Umbrel at home, use that guide instead.
+                  </p>
+                  <a
+                    href="/#node-guides"
+                    class="inline-flex items-center gap-2 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+                  >
+                    Compare node guides
                     <ArrowRightIcon className="size-4" aria-hidden="true" />
                   </a>
                 </div>
@@ -135,12 +168,19 @@ const ogImage = ogImageBySlug[entry.data.slug] ?? "/og.png";
 
             <div class="space-y-2">
               <p class="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
-                Quick jump
+                {isNodeGuide ? "Other node guides" : "Node setup guides"}
               </p>
-              <a href="/" class="block text-sm text-foreground/70 transition-colors hover:text-foreground">
-                Home
-              </a>
-              {relatedGuides.map((guide) => (
+
+              {isNodeGuide && braiinsGuide && (
+                <a
+                  href={getGuideHref(braiinsGuide)}
+                  class="block text-sm text-foreground/70 transition-colors hover:text-foreground"
+                >
+                  Continue to Braiins setup
+                </a>
+              )}
+
+              {(isNodeGuide ? otherNodeGuides : nodeGuides).map((guide) => (
                 <a
                   href={getGuideHref(guide)}
                   class="block text-sm text-foreground/70 transition-colors hover:text-foreground"
@@ -156,41 +196,51 @@ const ogImage = ogImageBySlug[entry.data.slug] ?? "/og.png";
 
     <section class="mx-auto max-w-6xl px-6 pb-10 lg:px-8">
       <div class="flex flex-wrap items-center justify-between gap-4 border-t border-border/70 pt-8">
-        {neighbors.previous ? (
+        {isNodeGuide ? (
           <a
-            href={getGuideHref(neighbors.previous)}
+            href="/#node-guides"
             class:list={[
               buttonVariants({ variant: "outline", size: "lg" }),
               "w-full justify-between whitespace-normal text-left sm:w-auto sm:whitespace-nowrap",
             ]}
           >
             <ArrowLeftIcon className="size-4" aria-hidden="true" />
-            {neighbors.previous.data.title}
+            Compare node guides
           </a>
         ) : (
-          <span />
+          <a
+            href="/#node-guides"
+            class:list={[
+              buttonVariants({ variant: "outline", size: "lg" }),
+              "w-full justify-between whitespace-normal text-left sm:w-auto sm:whitespace-nowrap",
+            ]}
+          >
+            <ArrowLeftIcon className="size-4" aria-hidden="true" />
+            Compare node guides
+          </a>
         )}
 
-        {neighbors.next ? (
+        {isNodeGuide && braiinsGuide ? (
           <a
-            href={getGuideHref(neighbors.next)}
+            href={getGuideHref(braiinsGuide)}
             class:list={[
               buttonVariants({ size: "lg" }),
               "w-full justify-between whitespace-normal text-left sm:w-auto sm:whitespace-nowrap",
             ]}
           >
-            {neighbors.next.data.title}
+            Continue to Braiins setup
             <ArrowRightIcon className="size-4" aria-hidden="true" />
           </a>
         ) : (
           <a
-            href="/"
+            href="/#node-guides"
             class:list={[
               buttonVariants({ size: "lg" }),
               "w-full justify-between whitespace-normal text-left sm:w-auto sm:whitespace-nowrap",
             ]}
           >
-            Back home
+            Compare node guides
+            <ArrowRightIcon className="size-4" aria-hidden="true" />
           </a>
         )}
       </div>

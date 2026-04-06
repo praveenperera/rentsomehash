@@ -8,13 +8,36 @@ import Header from "@/components/Header.astro";
 import WarningsAccordion from "@/components/WarningsAccordion";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { getGuideHref, getGuides, getHomePage, getReadingTime } from "@/lib/content";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  getBraiinsGuides,
+  getFeaturedNodeGuide,
+  getGuideHref,
+  getGuides,
+  getHomePage,
+  getNodeGuides,
+  getReadingTime,
+} from "@/lib/content";
 import SiteLayout from "@/layouts/SiteLayout.astro";
 
 const home = await getHomePage();
 const guides = await getGuides();
-const primaryGuide = guides.find((entry) => entry.data.kind === "primary") ?? guides[0];
+const nodeGuides = getNodeGuides(guides);
+const braiinsGuides = getBraiinsGuides(guides);
+const featuredNodeGuide = getFeaturedNodeGuide(guides);
+const braiinsGuide = braiinsGuides[0];
+
+if (!featuredNodeGuide || !braiinsGuide) {
+  throw new Error("Expected at least one node guide and one Braiins guide");
+}
+
 const { Content } = await render(home);
 ---
 
@@ -22,13 +45,14 @@ const { Content } = await render(home);
   <Header guides={guides} currentPath={Astro.url.pathname} />
 
   <main class="pb-24">
-    <section class="border-b border-border/70">
+    <section class="home-hero border-b border-border/70">
       <div class="mx-auto grid max-w-6xl gap-12 px-6 pt-28 pb-16 lg:grid-cols-[1.4fr_0.9fr] lg:px-8">
         <div class="space-y-8">
           <div class="space-y-4">
-            <Badge variant="outline">{home.data.eyebrow}</Badge>
+            <Badge variant="outline" className="home-hero-badge">{home.data.eyebrow}</Badge>
             <h1 class="max-w-4xl text-5xl font-heading font-medium tracking-[-0.08em] text-balance sm:text-6xl">
-              Rent hashpower on Braiins. Point it at DATUM. Build blocks on OCEAN.
+              Set up the node <span class="text-primary">first</span>. Then point Braiins at it.
+              Build blocks on <span class="text-primary">OCEAN</span>.
             </h1>
             <p class="max-w-2xl text-lg leading-8 text-foreground/76">
               {home.data.description}
@@ -49,78 +73,98 @@ const { Content } = await render(home);
           </div>
         </div>
 
-        <div class="space-y-4 border border-border/70 bg-background/70 p-5 backdrop-blur-sm">
-          <p class="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
-            Main route
-          </p>
-          <div class="space-y-2">
-            <p class="text-sm font-heading tracking-[-0.04em]">
-              {primaryGuide.data.title}
+        <Card className="home-hero-card self-start py-0" size="sm">
+          <CardHeader className="gap-3 border-b border-border/70 py-5">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <p class="text-[11px] uppercase tracking-[0.28em] text-primary/84">
+                Step 1
+              </p>
+              <Badge variant="outline" className="border-primary/25 bg-primary/10 text-primary">
+                Good default from zero
+              </Badge>
+            </div>
+            <div class="space-y-2">
+              <CardTitle className="text-base tracking-[-0.04em]">
+                {featuredNodeGuide.data.title}
+              </CardTitle>
+              <CardDescription className="max-w-md text-sm leading-7 text-foreground/74">
+                {featuredNodeGuide.data.summary}
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="py-5">
+            <dl class="grid gap-4 sm:grid-cols-2">
+              <div class="space-y-1">
+                <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                  Setup
+                </dt>
+                <dd class="text-sm text-foreground/82">{featuredNodeGuide.data.setupType}</dd>
+              </div>
+              <div class="space-y-1">
+                <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                  Read time
+                </dt>
+                <dd class="text-sm text-foreground/82">{getReadingTime(featuredNodeGuide)}</dd>
+              </div>
+              <div class="space-y-1">
+                <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                  Then do
+                </dt>
+                <dd class="text-sm text-foreground/82">{braiinsGuide.data.title}</dd>
+              </div>
+              <div class="space-y-1">
+                <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                  Goal
+                </dt>
+                <dd class="text-sm text-foreground/82">Get a public DATUM endpoint ready for Braiins</dd>
+              </div>
+            </dl>
+          </CardContent>
+          <CardFooter className="justify-between gap-4 border-t border-border/70 py-4">
+            <p class="text-xs leading-6 text-foreground/66">
+              Use this first, then bring its endpoint into the shared Braiins guide
             </p>
-            <p class="text-sm leading-7 text-foreground/74">
-              {primaryGuide.data.summary}
-            </p>
-          </div>
-          <Separator />
-          <dl class="grid gap-4 sm:grid-cols-2">
-            <div class="space-y-1">
-              <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                Route
-              </dt>
-              <dd class="text-sm text-foreground/82">Linux VPS + DATUM box</dd>
-            </div>
-            <div class="space-y-1">
-              <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                Read time
-              </dt>
-              <dd class="text-sm text-foreground/82">{getReadingTime(primaryGuide)}</dd>
-            </div>
-            <div class="space-y-1">
-              <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                Focus
-              </dt>
-              <dd class="text-sm text-foreground/82">Fastest way to get a datum box online</dd>
-            </div>
-            <div class="space-y-1">
-              <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                Home node
-              </dt>
-              <dd class="text-sm text-foreground/82">StartOS + Umbrel guides included</dd>
-            </div>
-          </dl>
-          <a
-            href={getGuideHref(primaryGuide)}
-            class="inline-flex items-center gap-2 text-sm font-medium text-primary transition-colors hover:text-primary/80"
-          >
-            Open the main guide
-            <ArrowRightIcon className="size-4" aria-hidden="true" />
-          </a>
-        </div>
+            <a
+              href={getGuideHref(featuredNodeGuide)}
+              class="inline-flex items-center gap-2 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+            >
+              Open the VPS guide
+              <ArrowRightIcon className="size-4" aria-hidden="true" />
+            </a>
+          </CardFooter>
+        </Card>
       </div>
     </section>
 
-    <section class="mx-auto max-w-6xl px-6 py-16 lg:px-8">
-      <div class="grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+    <section class="home-workflow-section mx-auto max-w-6xl px-6 py-16 lg:px-8">
+      <div class="space-y-8">
         <div class="space-y-4">
           <p class="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
             What you are actually doing
           </p>
           <h2 class="max-w-lg text-3xl font-heading tracking-[-0.06em]">
-            Get the box running, then point Braiins at it
+            This is a 2-step workflow
           </h2>
           <p class="max-w-lg text-base leading-8 text-foreground/74">
-            The guide is broken into the same real-world steps you have to execute:
-            getting the node online, wiring DATUM, funding Braiins, and entering the
-            right pool details the first time.
+            First you finish one node setup guide and make DATUM reachable. Then you use the shared
+            Braiins guide once, with the endpoint and username details from the node guide you chose.
           </p>
         </div>
 
-        <div class="space-y-4">
+        <div class="grid gap-4 xl:grid-cols-2">
           {home.data.highlights.map((highlight, index) => (
-            <div class="space-y-4">
-              {index > 0 && <Separator />}
-              <div class="grid gap-3 md:grid-cols-[10rem_1fr]">
-                <p class="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+            <a
+              href={index === 0 ? "/#node-guides" : getGuideHref(braiinsGuide)}
+              class:list={[
+                "home-step-card relative isolate block overflow-hidden border px-5 py-6 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-all",
+                index === 0 ? "home-step-card home-step-card-node" : "home-step-card home-step-card-braiins",
+              ]}
+            >
+              <span class="home-step-number" aria-hidden="true">
+                0{index + 1}
+              </span>
+              <div class="relative grid gap-4 md:grid-cols-[8rem_1fr]">
+                <p class="pt-1 text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
                   Step 0{index + 1}
                 </p>
                 <div class="space-y-2">
@@ -132,68 +176,90 @@ const { Content } = await render(home);
                   </p>
                 </div>
               </div>
-            </div>
+            </a>
           ))}
         </div>
       </div>
     </section>
 
-    <section id="routes" class="border-y border-border/70 bg-muted/20">
+    <section id="node-guides" class="home-stage-section home-stage-section-node border-y border-border/70">
       <div class="mx-auto max-w-6xl px-6 py-16 lg:px-8">
-        <div class="grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+        <div class="space-y-8">
           <div class="space-y-5">
             <p class="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
-              Routes
+              Step 1
             </p>
             <h2 class="text-3xl font-heading tracking-[-0.06em]">
-              Choose the route you actually want to run
+              Choose the node setup that matches your situation
             </h2>
-            <p class="max-w-xl text-base leading-8 text-foreground/74">
-              The main route assumes a fresh Linux VPS and gets everything onto one
-              machine. The home node routes, currently StartOS and Umbrel, are there if
-              you already have home hardware and want to reuse that setup instead.
+            <p class="max-w-3xl text-base leading-8 text-foreground/74">
+              The VPS guide is the best default if you are starting from zero and want the path that
+              fits the most people. If you already have StartOS or Umbrel running at home, it usually
+              makes more sense to use that instead.
             </p>
           </div>
 
-          <div class="space-y-0 border border-border/70 bg-background/70 backdrop-blur-sm">
-            {guides.map((guide, index) => (
-              <div>
-                {index > 0 && <Separator />}
-                <GuideListItem guide={guide} />
-              </div>
+          <div class="space-y-4">
+            {nodeGuides.map((guide) => (
+              <GuideListItem guide={guide} />
             ))}
           </div>
         </div>
       </div>
     </section>
 
-    <section class="mx-auto max-w-6xl px-6 py-16 lg:px-8">
-      <div class="grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-        <div class="space-y-4">
-          <p class="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
-            Don&apos;t skip these
-          </p>
-          <h2 class="text-3xl font-heading tracking-[-0.06em]">
-            These are the parts people usually get wrong
-          </h2>
-        </div>
+    <section id="braiins-guide" class="home-stage-section home-stage-section-braiins border-y border-border/70">
+      <div class="mx-auto max-w-6xl px-6 py-16 lg:px-8">
+        <div class="space-y-8">
+          <div class="space-y-5">
+            <p class="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+              Step 2
+            </p>
+            <h2 class="text-3xl font-heading tracking-[-0.06em]">
+              Use the shared Braiins guide once the node is ready
+            </h2>
+            <p class="max-w-3xl text-base leading-8 text-foreground/74">
+              The Braiins side is separate. Once your node guide gives you a working public DATUM
+              endpoint, use the shared Braiins guide to create the account, fund it, and create the bid.
+            </p>
+          </div>
 
-        <WarningsAccordion client:visible warnings={home.data.warnings} />
+          <div>
+            <GuideListItem guide={braiinsGuide} />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="home-warning-section border-y border-border/70">
+      <div class="mx-auto max-w-6xl px-6 py-16 lg:px-8">
+        <div class="grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+          <div class="space-y-4">
+            <p class="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+              Don&apos;t skip these
+            </p>
+            <h2 class="text-3xl font-heading tracking-[-0.06em]">
+              These are the parts people usually get wrong
+            </h2>
+          </div>
+
+          <WarningsAccordion client:visible warnings={home.data.warnings} />
+        </div>
       </div>
     </section>
 
     <section class="mx-auto max-w-6xl px-6 pb-8 lg:px-8">
-      <div class="flex flex-wrap items-center justify-between gap-4 border-t border-border/70 pt-8">
+      <div class="home-final-cta flex flex-wrap items-center justify-between gap-4 border-t border-border/70 pt-8">
         <div class="space-y-1">
           <p class="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
             Ready to start
           </p>
           <p class="text-sm text-foreground/74">
-            Open the main route and work through it line by line
+            Start with the node guide that matches the setup you actually want to run
           </p>
         </div>
-        <a href={home.data.primaryCtaHref} class={buttonVariants({ size: "lg" })}>
-          Start the guide
+        <a href="/#node-guides" class={buttonVariants({ size: "lg" })}>
+          Compare node guides
           <ArrowSquareOutIcon className="size-4" aria-hidden="true" />
         </a>
       </div>

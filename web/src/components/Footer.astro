@@ -1,6 +1,7 @@
 ---
 import type { GuideEntry } from "@/lib/content";
 import { Separator } from "@/components/ui/separator";
+import { getGuideHref } from "@/lib/content";
 
 interface Props {
   guides: GuideEntry[];
@@ -16,7 +17,7 @@ const { guides } = Astro.props;
     <div class="flex flex-wrap gap-4">
       <a href="/" class="transition-colors hover:text-foreground">Home</a>
       {guides.map((guide) => (
-        <a href={`/guides/${guide.data.slug}/`} class="transition-colors hover:text-foreground">
+        <a href={getGuideHref(guide)} class="transition-colors hover:text-foreground">
           {guide.data.navLabel}
         </a>
       ))}

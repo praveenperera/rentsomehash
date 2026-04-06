@@ -262,3 +262,472 @@
 .content-prose th {
   @apply bg-muted/50 font-medium text-foreground;
 }
+
+.home-hero {
+  position: relative;
+  overflow: clip;
+  background:
+    radial-gradient(
+      circle at top left,
+      color-mix(in oklch, var(--primary) 7%, transparent) 0,
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 82% 18%,
+      color-mix(in oklch, var(--primary) 10%, transparent) 0,
+      transparent 18%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklch, var(--primary) 2.5%, var(--background)),
+      color-mix(in oklch, white 86%, var(--background))
+    );
+}
+
+.home-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in oklch, var(--primary) 8%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--primary) 7%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 3.5rem 3.5rem;
+  mask-image: linear-gradient(180deg, black, transparent 86%);
+  opacity: 0.14;
+  pointer-events: none;
+}
+
+.home-hero > div {
+  position: relative;
+  z-index: 1;
+}
+
+.home-hero-badge {
+  border-color: color-mix(in oklch, var(--primary) 14%, var(--border));
+  background: color-mix(in oklch, var(--primary) 3%, white 97%);
+  color: color-mix(in oklch, var(--primary) 24%, var(--foreground));
+}
+
+.home-hero-card {
+  border-color: color-mix(in oklch, var(--primary) 14%, var(--border));
+  background: linear-gradient(
+    160deg,
+    color-mix(in oklch, white 95%, var(--primary) 5%) 0%,
+    color-mix(in oklch, var(--background) 97%, white 3%) 52%,
+    color-mix(in oklch, white 98%, var(--primary) 2%) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklch, white 78%, transparent),
+    0 16px 40px color-mix(in oklch, var(--primary) 5%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.home-workflow-section {
+  position: relative;
+}
+
+.home-stage-section {
+  position: relative;
+  overflow: clip;
+}
+
+.home-stage-section-node {
+  background:
+    radial-gradient(
+      circle at top right,
+      color-mix(in oklch, var(--primary) 9%, transparent) 0,
+      transparent 30%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklch, var(--primary) 3%, var(--background)),
+      color-mix(in oklch, var(--primary) 1%, var(--background))
+    );
+}
+
+.home-stage-section-node::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0.5rem;
+  background: color-mix(in oklch, var(--primary) 48%, white 52%);
+}
+
+.home-stage-section-braiins {
+  background:
+    radial-gradient(
+      circle at top left,
+      color-mix(in oklch, oklch(0.82 0.05 230) 16%, transparent) 0,
+      transparent 32%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklch, oklch(0.89 0.04 230) 10%, var(--background)),
+      color-mix(in oklch, oklch(0.8 0.04 230) 4%, var(--background))
+    );
+  box-shadow: inset 0 1px 0 color-mix(in oklch, white 45%, transparent);
+}
+
+.home-stage-section-braiins::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0.5rem;
+  background: color-mix(in oklch, oklch(0.7 0.07 230) 42%, white 58%);
+}
+
+.home-step-card {
+  min-height: 100%;
+}
+
+.home-step-number {
+  position: absolute;
+  right: 1.25rem;
+  top: 1rem;
+  font-family: var(--font-heading);
+  font-size: clamp(4rem, 12vw, 7rem);
+  line-height: 1;
+  letter-spacing: -0.08em;
+  opacity: 0.13;
+  pointer-events: none;
+}
+
+.home-step-card:hover,
+.home-step-card:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 32px rgba(15, 23, 42, 0.08);
+}
+
+.home-step-card:focus-visible {
+  outline: 2px solid color-mix(in oklch, var(--primary) 35%, transparent);
+  outline-offset: 2px;
+}
+
+.home-step-card:hover .home-step-number,
+.home-step-card:focus-visible .home-step-number {
+  opacity: 0.2;
+}
+
+.home-step-card-node {
+  border-color: color-mix(in oklch, var(--primary) 16%, var(--border));
+  background: color-mix(in oklch, var(--background) 99%, white 1%);
+  box-shadow:
+    inset 0 4px 0 color-mix(in oklch, var(--primary) 42%, transparent),
+    0 1px 0 rgba(15, 23, 42, 0.04);
+}
+
+.home-step-card-braiins {
+  border-color: color-mix(in oklch, var(--chart-1) 16%, var(--border));
+  background: color-mix(in oklch, var(--background) 99%, white 1%);
+  box-shadow:
+    inset 0 4px 0 color-mix(in oklch, oklch(0.72 0.06 230) 38%, transparent),
+    0 1px 0 rgba(15, 23, 42, 0.04);
+}
+
+.home-stage-section-node .group.block {
+  border-color: color-mix(in oklch, var(--primary) 16%, var(--border));
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklch, var(--primary) 5%, white 95%) 0%,
+    color-mix(in oklch, var(--primary) 2%, var(--background)) 58%,
+    color-mix(in oklch, var(--background) 98%, white 2%) 100%
+  );
+  box-shadow:
+    inset 0 4px 0 color-mix(in oklch, var(--primary) 40%, transparent),
+    0 10px 24px rgba(15, 23, 42, 0.04);
+}
+
+.home-stage-section-node .group.block h3 {
+  color: color-mix(in oklch, var(--primary) 10%, var(--foreground));
+}
+
+.home-stage-section-node .group.block [data-slot="badge"] {
+  border-color: color-mix(in oklch, var(--primary) 10%, var(--border));
+  background: color-mix(in oklch, var(--primary) 4%, white 96%);
+  color: color-mix(in oklch, var(--primary) 24%, var(--foreground));
+}
+
+.home-stage-section-node .group.block:hover {
+  border-color: color-mix(in oklch, var(--primary) 48%, var(--border));
+}
+
+.home-stage-section-braiins .group.block {
+  border-color: color-mix(in oklch, var(--chart-1) 15%, var(--border));
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklch, oklch(0.93 0.02 230) 12%, white 88%) 0%,
+    color-mix(in oklch, oklch(0.84 0.04 230) 5%, var(--background)) 60%,
+    color-mix(in oklch, var(--background) 98%, white 2%) 100%
+  );
+  box-shadow:
+    inset 0 4px 0 color-mix(in oklch, oklch(0.72 0.06 230) 36%, transparent),
+    0 10px 24px rgba(15, 23, 42, 0.04);
+}
+
+.home-stage-section-braiins .group.block:hover {
+  border-color: color-mix(in oklch, oklch(0.72 0.06 230) 48%, var(--border));
+}
+
+.home-step-card-node:hover,
+.home-step-card-node:focus-visible {
+  border-color: color-mix(in oklch, var(--primary) 24%, var(--border));
+}
+
+.home-step-card-braiins:hover,
+.home-step-card-braiins:focus-visible {
+  border-color: color-mix(in oklch, oklch(0.72 0.06 230) 24%, var(--border));
+}
+
+.home-warning-section {
+  background:
+    radial-gradient(
+      circle at top right,
+      color-mix(in oklch, oklch(0.76 0.14 70) 5%, transparent) 0,
+      transparent 22%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklch, oklch(0.9 0.05 75) 6%, var(--background)),
+      color-mix(in oklch, oklch(0.84 0.06 68) 2%, var(--background))
+    );
+}
+
+.home-warning-accordion {
+  border-color: color-mix(in oklch, oklch(0.74 0.11 70) 12%, var(--border));
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklch, white 95%, oklch(0.83 0.07 72) 5%),
+    color-mix(in oklch, var(--background) 98%, white 2%)
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklch, white 82%, transparent),
+    0 16px 40px color-mix(in oklch, oklch(0.72 0.08 70) 3%, transparent);
+}
+
+.home-warning-accordion [data-slot="accordion-item"] {
+  border-color: color-mix(in oklch, oklch(0.74 0.11 70) 8%, var(--border));
+}
+
+.home-warning-accordion [data-slot="accordion-trigger"] {
+  color: color-mix(in oklch, var(--foreground) 90%, oklch(0.5 0.05 70) 10%);
+}
+
+.home-warning-accordion [data-slot="accordion-trigger"]:hover {
+  text-decoration-color: color-mix(
+    in oklch,
+    oklch(0.72 0.09 70) 50%,
+    transparent
+  );
+}
+
+.home-warning-accordion [data-slot="accordion-trigger"][aria-expanded="true"] {
+  background: color-mix(in oklch, oklch(0.86 0.06 72) 10%, transparent);
+}
+
+.home-warning-accordion [data-slot="accordion-content"] > div {
+  color: color-mix(in oklch, var(--foreground) 84%, oklch(0.48 0.04 70) 16%);
+}
+
+.home-final-cta {
+  position: relative;
+}
+
+.home-final-cta::before {
+  content: "";
+  position: absolute;
+  inset: -1px auto auto 0;
+  width: 8rem;
+  height: 1px;
+  background: linear-gradient(90deg, var(--primary), transparent);
+}
+
+.dark .home-stage-section-node {
+  background:
+    radial-gradient(
+      circle at top right,
+      color-mix(in oklch, var(--primary) 34%, transparent) 0,
+      transparent 40%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklch, var(--primary) 22%, var(--background)),
+      color-mix(in oklch, var(--primary) 10%, var(--background))
+    );
+}
+
+.dark .home-hero {
+  background:
+    radial-gradient(
+      circle at top left,
+      color-mix(in oklch, var(--primary) 24%, transparent) 0,
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 82% 18%,
+      color-mix(in oklch, var(--primary) 32%, transparent) 0,
+      transparent 22%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklch, var(--primary) 12%, var(--background)),
+      color-mix(in oklch, black 18%, var(--background))
+    );
+}
+
+.dark .home-hero::before {
+  opacity: 0.28;
+}
+
+.dark .home-hero-badge {
+  background: color-mix(in oklch, var(--primary) 16%, var(--background));
+  color: color-mix(in oklch, var(--primary) 38%, white 62%);
+}
+
+.dark .home-hero-card {
+  border-color: color-mix(in oklch, var(--primary) 36%, var(--border));
+  background: linear-gradient(
+    160deg,
+    color-mix(in oklch, var(--primary) 16%, var(--background)) 0%,
+    color-mix(in oklch, var(--background) 92%, black 8%) 52%,
+    color-mix(in oklch, var(--primary) 10%, var(--background)) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklch, white 12%, transparent),
+    0 22px 60px color-mix(in oklch, black 38%, transparent);
+}
+
+.dark .home-stage-section-node .group.block {
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklch, var(--primary) 14%, var(--background)) 0%,
+    color-mix(in oklch, var(--primary) 7%, var(--background)) 58%,
+    color-mix(in oklch, var(--background) 92%, black 8%) 100%
+  );
+}
+
+.dark .home-stage-section-node .group.block h3 {
+  color: color-mix(in oklch, var(--primary) 24%, var(--foreground));
+}
+
+.dark .home-stage-section-node .group.block [data-slot="badge"] {
+  border-color: color-mix(in oklch, var(--primary) 32%, var(--border));
+  background: color-mix(in oklch, var(--primary) 18%, var(--background));
+  color: color-mix(in oklch, var(--primary) 40%, white 60%);
+}
+
+.dark .home-stage-section-braiins {
+  background:
+    radial-gradient(
+      circle at top left,
+      color-mix(in oklch, oklch(0.62 0.06 230) 46%, transparent) 0,
+      transparent 38%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklch, oklch(0.56 0.05 230) 26%, var(--background)),
+      color-mix(in oklch, oklch(0.46 0.04 230) 14%, var(--background))
+    );
+  box-shadow: inset 0 1px 0 color-mix(in oklch, white 10%, transparent);
+}
+
+.dark .home-step-card {
+  background: color-mix(in oklch, var(--background) 80%, white 4%);
+}
+
+.dark .home-step-card:hover,
+.dark .home-step-card:focus-visible {
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
+}
+
+.dark .home-step-card-node {
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklch, var(--primary) 18%, var(--background)) 0%,
+    color-mix(in oklch, var(--primary) 8%, var(--background)) 62%,
+    color-mix(in oklch, var(--background) 92%, black 8%) 100%
+  );
+}
+
+.dark .home-step-card-braiins {
+  border-color: color-mix(in oklch, oklch(0.63 0.05 230) 42%, var(--border));
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklch, oklch(0.58 0.05 230) 24%, var(--background)) 0%,
+    color-mix(in oklch, oklch(0.52 0.04 230) 12%, var(--background)) 58%,
+    color-mix(in oklch, var(--background) 92%, black 8%) 100%
+  );
+  box-shadow:
+    inset 0 4px 0 color-mix(in oklch, oklch(0.7 0.06 230) 60%, transparent),
+    0 1px 0 rgba(15, 23, 42, 0.04);
+}
+
+.dark .home-stage-section-braiins .group.block {
+  border-color: color-mix(in oklch, oklch(0.63 0.05 230) 42%, var(--border));
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklch, oklch(0.56 0.05 230) 22%, var(--background)) 0%,
+    color-mix(in oklch, oklch(0.48 0.04 230) 10%, var(--background)) 60%,
+    color-mix(in oklch, var(--background) 92%, black 8%) 100%
+  );
+  box-shadow:
+    inset 0 4px 0 color-mix(in oklch, oklch(0.7 0.06 230) 56%, transparent),
+    0 10px 30px rgba(15, 23, 42, 0.05);
+}
+
+.dark .home-warning-section {
+  background:
+    radial-gradient(
+      circle at top right,
+      color-mix(in oklch, oklch(0.68 0.1 70) 18%, transparent) 0,
+      transparent 28%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklch, oklch(0.52 0.05 72) 16%, var(--background)),
+      color-mix(in oklch, oklch(0.45 0.04 68) 10%, var(--background))
+    );
+}
+
+.dark .home-warning-accordion {
+  border-color: color-mix(in oklch, oklch(0.7 0.08 70) 22%, var(--border));
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklch, oklch(0.46 0.04 72) 16%, var(--background)),
+    color-mix(in oklch, var(--background) 92%, black 8%)
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklch, white 8%, transparent),
+    0 20px 60px color-mix(in oklch, black 32%, transparent);
+}
+
+.dark .home-warning-accordion [data-slot="accordion-item"] {
+  border-color: color-mix(in oklch, oklch(0.68 0.08 70) 18%, var(--border));
+}
+
+.dark
+  .home-warning-accordion
+  [data-slot="accordion-trigger"][aria-expanded="true"] {
+  background: color-mix(in oklch, oklch(0.56 0.06 72) 22%, transparent);
+}
+
+@media (max-width: 640px) {
+  .home-step-number {
+    font-size: 4.5rem;
+    right: 1rem;
+  }
+
+  .home-stage-section-node::before,
+  .home-stage-section-braiins::before {
+    width: 100%;
+    height: 0.35rem;
+    inset: 0 0 auto 0;
+  }
+}

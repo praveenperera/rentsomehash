@@ -1,6 +1,12 @@
 import { getCollection, type CollectionEntry } from "astro:content";
 
 export type GuideEntry = CollectionEntry<"guides">;
+export type GuideStage = GuideEntry["data"]["stage"];
+
+const guideStageOrder: Record<GuideStage, number> = {
+  node: 0,
+  braiins: 1,
+};
 
 export async function getHomePage() {
   const pages = await getCollection("pages");
@@ -14,13 +20,37 @@ export async function getHomePage() {
 }
 
 export async function getGuides() {
-  return (await getCollection("guides")).sort(
-    (left, right) => left.data.order - right.data.order,
+  return [...(await getCollection("guides"))].sort(
+    (left, right) =>
+      guideStageOrder[left.data.stage] - guideStageOrder[right.data.stage] ||
+      left.data.order - right.data.order,
   );
 }
 
 export function getGuideHref(entry: GuideEntry) {
   return `/guides/${entry.data.slug}/`;
+}
+
+export function getNodeGuides(guides: GuideEntry[]) {
+  return guides.filter((entry) => entry.data.stage === "node");
+}
+
+export function getBraiinsGuides(guides: GuideEntry[]) {
+  return guides.filter((entry) => entry.data.stage === "braiins");
+}
+
+export function getFeaturedNodeGuide(guides: GuideEntry[]) {
+  const nodeGuides = getNodeGuides(guides);
+
+  return nodeGuides.find((entry) => entry.data.featured) ?? nodeGuides[0];
+}
+
+export function getPrimaryBraiinsGuide(guides: GuideEntry[]) {
+  return getBraiinsGuides(guides)[0];
+}
+
+export function getGuideStageLabel(entry: GuideEntry) {
+  return entry.data.stage === "node" ? "Node setup" : "Braiins setup";
 }
 
 export function getReadingTime(entry: GuideEntry) {
@@ -29,16 +59,4 @@ export function getReadingTime(entry: GuideEntry) {
   const minutes = Math.max(1, Math.round(words / 190));
 
   return `${minutes} min read`;
-}
-
-export function getGuideNeighbors(guides: GuideEntry[], slug: string) {
-  const currentIndex = guides.findIndex((entry) => entry.data.slug === slug);
-
-  return {
-    previous: currentIndex > 0 ? guides[currentIndex - 1] : undefined,
-    next:
-      currentIndex >= 0 && currentIndex < guides.length - 1
-        ? guides[currentIndex + 1]
-        : undefined,
-  };
 }

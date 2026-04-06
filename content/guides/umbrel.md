@@ -1,28 +1,28 @@
 ---
-title: "Umbrel route with router port forwarding"
-description: "Use this route if you already run Umbrel and would rather reuse that box than build a fresh VPS around DATUM."
+title: "Umbrel node setup for DATUM"
+description: "Use this if you already run Umbrel and want to reuse that box for DATUM before continuing to the shared Braiins guide."
 slug: umbrel
 order: 3
-kind: alternative
-summary: "Reuse an existing Umbrel setup, install Bitcoin Knots and DATUM, then forward port 23334 from your router to Braiins."
+stage: node
+summary: "Reuse Umbrel, install Bitcoin Knots and DATUM, then expose DATUM on port 23334."
 navLabel: "Umbrel"
-routeType: "Existing Umbrel setup"
-eyebrow: "Home node route"
+setupType: "Existing Umbrel setup"
+eyebrow: "Step 1: Node setup"
 featured: false
-updated: "2026-04-03"
+updated: "2026-04-06"
 ---
 
-## When this route makes sense
+## When this guide makes sense
 
-Use this route if you already run Umbrel and want to keep the node and DATUM on hardware you already trust.
+Use this guide if you already run Umbrel and want to keep the node and DATUM on hardware you already trust.
 
-This is the simpler Umbrel version of the home node workflow:
+This guide leaves you with an Umbrel-hosted DATUM endpoint ready for the shared Braiins guide:
 
 - Install Bitcoin Knots on Umbrel
 - Install DATUM on Umbrel
 - Configure DATUM correctly
 - Forward port `23334` from your router to the Umbrel box
-- Give Braiins your public IP on that port
+- Carry the public endpoint into the Braiins guide
 
 ## Why port forwarding is the straightforward route here
 
@@ -175,11 +175,14 @@ Replace `your-public-ip` with the actual public IP of your home connection.
 
 If your ISP changes that IP, Braiins will need the new one.
 
-## 8. Use the right Braiins pool username
+## 8. What you bring into Braiins
 
-Use the Bitcoin address receiving OCEAN rewards as the username, optionally followed by a worker name after a period.
+When this guide is done, bring one of these public endpoints into the shared Braiins guide:
 
-It should look like:
+- `stratum+tcp://hostname.domain.com:23334`
+- `stratum+tcp://your-public-ip:23334`
+
+Use the Bitcoin address receiving OCEAN rewards as the username, optionally followed by a worker name after a period:
 
 ```text
 bc1qyourrealbitcoinaddress.someworkername
@@ -187,22 +190,11 @@ bc1qyourrealbitcoinaddress.someworkername
 
 Leave the password blank unless Braiins insists on one.
 
-## What stays the same from the main guide
-
-The Braiins side is still the same:
-
-- Create the account
-- Do the Telegram verification
-- Fund the account with BTC
-- Create the bid
-- Enter the correct mining pool URL
-- Use the correct pool username format for your DATUM setup
-
-If you need the exact Braiins field-by-field guidance, use the main guide alongside this one:
+Then continue here:
 
 <https://rentsomehash.com/guides/braiins-ocean/>
 
-## Why use this route
+## Why use this guide
 
 - You already have an Umbrel box you trust, so you can reuse it instead of building a separate VPS stack
 - DATUM on Umbrel already sits on top of Bitcoin Knots and speaks Stratum on port `23334`

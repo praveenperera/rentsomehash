@@ -122,7 +122,13 @@ const routeBadgeStyle: CSSProperties = {
   textTransform: "uppercase",
 };
 
-function Pill({ children, layout }: { children: string; layout: LayoutProfile }) {
+function Pill({
+  children,
+  layout,
+}: {
+  children: string;
+  layout: LayoutProfile;
+}) {
   return (
     <div
       style={{
@@ -339,7 +345,9 @@ export function GuideCard({
               }}
             >
               {pills.map((pill) => (
-                <Pill key={pill} layout={layout}>{pill}</Pill>
+                <Pill key={pill} layout={layout}>
+                  {pill}
+                </Pill>
               ))}
             </div>
 
@@ -418,8 +426,10 @@ function layoutFits(
     textWidth,
     0.54,
   );
-  const titleHeight = titleLines * layout.titleFontSize * layout.titleLineHeight;
-  const subtitleHeight = subtitleLines * layout.subtitleFontSize * layout.subtitleLineHeight;
+  const titleHeight =
+    titleLines * layout.titleFontSize * layout.titleLineHeight;
+  const subtitleHeight =
+    subtitleLines * layout.subtitleFontSize * layout.subtitleLineHeight;
   const textBlockHeight = titleHeight + layout.bodyGap + subtitleHeight;
   const eyebrowHeight = layout.eyebrowFontSize * layout.eyebrowLineHeight;
   const splitHeight = Math.max(
@@ -427,28 +437,23 @@ function layoutFits(
     layout.artHeight + illustrationTopOffset,
   );
   const topHeight =
-    routeBadgeHeight
-    + layout.sectionGap
-    + eyebrowHeight
-    + layout.sectionGap
-    + splitHeight;
+    routeBadgeHeight +
+    layout.sectionGap +
+    eyebrowHeight +
+    layout.sectionGap +
+    splitHeight;
   const pillLines = estimatePillLines(content.pills, layout);
-  const pillHeight =
-    pillLines * layout.pillHeight + (pillLines - 1) * 14;
+  const pillHeight = pillLines * layout.pillHeight + (pillLines - 1) * 14;
   const footerHeight =
-    layout.footerPaddingTop
-    + pillHeight
-    + layout.footerGap
-    + footerTextHeight;
+    layout.footerPaddingTop + pillHeight + layout.footerGap + footerTextHeight;
   const availableHeight =
-    canvasHeight
-    - outerPadding * 2
-    - accentBarHeight
-    - layout.innerPadding * 2;
+    canvasHeight - outerPadding * 2 - accentBarHeight - layout.innerPadding * 2;
 
-  return titleLines <= 3
-    && subtitleLines <= 4
-    && topHeight + footerHeight <= availableHeight;
+  return (
+    titleLines <= 3 &&
+    subtitleLines <= 4 &&
+    topHeight + footerHeight <= availableHeight
+  );
 }
 
 function getTextWidth(layout: LayoutProfile): number {
@@ -474,9 +479,10 @@ function estimateWrappedLines(
 
   for (const word of words) {
     const wordWidth = word.length * fontSize * averageCharWidth;
-    const nextWidth = currentLineWidth === 0
-      ? wordWidth
-      : currentLineWidth + spaceWidth + wordWidth;
+    const nextWidth =
+      currentLineWidth === 0
+        ? wordWidth
+        : currentLineWidth + spaceWidth + wordWidth;
 
     if (nextWidth > maxWidth && currentLineWidth > 0) {
       lines += 1;
@@ -499,9 +505,8 @@ function estimatePillLines(pills: string[], layout: LayoutProfile): number {
   for (const pill of pills) {
     const textWidth = pill.length * 15 * 0.62;
     const pillWidth = textWidth + layout.pillPadX * 2;
-    const nextWidth = currentLineWidth === 0
-      ? pillWidth
-      : currentLineWidth + gap + pillWidth;
+    const nextWidth =
+      currentLineWidth === 0 ? pillWidth : currentLineWidth + gap + pillWidth;
 
     if (nextWidth > contentWidth && currentLineWidth > 0) {
       lines += 1;

@@ -1,20 +1,20 @@
 ---
-title: "StartOS route with Start Tunnel"
-description: "Use this route if you already run StartOS and would rather point Braiins at your home setup through Start Tunnel."
+title: "StartOS node setup for DATUM"
+description: "Use this if you already run StartOS and want to reuse that box for DATUM before continuing to the shared Braiins guide."
 slug: startos
 order: 2
-kind: alternative
-summary: "Reuse an existing StartOS setup, install the right packages, and route Braiins through Start Tunnel."
+stage: node
+summary: "Reuse StartOS, install the right packages, and expose DATUM through Start Tunnel or a direct port forward."
 navLabel: "StartOS"
-routeType: "Existing StartOS setup"
-eyebrow: "Home node route"
+setupType: "Existing StartOS setup"
+eyebrow: "Step 1: Node setup"
 featured: false
-updated: "2026-04-03"
+updated: "2026-04-06"
 ---
 
-## When this route makes sense
+## When this guide makes sense
 
-Use this route if you want to use StartOS instead, or if you are already running StartOS 0.4.0, which is the setup advised in the source notes.
+Use this guide if you want to use StartOS instead, or if you are already running StartOS 0.4.0, which is the setup advised in the source notes.
 
 There are two broad ways to expose the service:
 
@@ -73,34 +73,33 @@ Replace `your-vps-ip` with the public IP of the VPS running Start Tunnel.
 
 ## 5. If you skip Start Tunnel
 
-If you choose to forward a port directly from your router to the Start9 machine instead, the pool URL points at the StartOS box on your local network.
+If you choose to forward a port directly from your router to the StartOS machine instead, the forwarded traffic still lands on the box on your local network.
+
+Braiins still needs the public endpoint, not the private LAN address.
 
 It will look something like:
 
 ```text
-stratum+tcp://192.168.x.y:23334
+stratum+tcp://your-public-ip-or-ddns-hostname:23334
 ```
 
-Replace the private IP with the actual address of the StartOS machine.
+Replace that with the actual public IP or DDNS hostname that resolves to your home connection.
 
 This works, but giving Braiins your home IP is obviously less ideal.
 
-## What stays the same from the main guide
+## What you bring into Braiins
 
-The Braiins side does not really change:
+Once this guide is done, bring these values into the shared Braiins guide:
 
-- Create the account
-- Do the Telegram verification
-- Fund the account with BTC
-- Create the bid
-- Enter the correct mining pool URL
-- Use the correct pool username format for your DATUM setup
+- If you used Start Tunnel: `stratum+tcp://your-start-tunnel-vps-ip:23334`
+- If you used direct port forwarding: `stratum+tcp://your-public-ip-or-ddns-hostname:23334`
+- Pool username: `bc1qyourrealbitcoinaddress.someworkername`
 
-If you need the exact Braiins field-by-field guidance, use the main guide alongside this one:
+Then continue here:
 
 <https://rentsomehash.com/guides/braiins-ocean/>
 
-## Why use this route
+## Why use this guide
 
 - You already have a StartOS box you trust, so you can reuse it instead of rebuilding the whole stack on a fresh VPS
 - Start Tunnel gives Braiins a stable public endpoint without handing over your literal home IP

@@ -3,25 +3,31 @@ import { ArrowRightIcon } from "@phosphor-icons/react";
 
 import { Badge } from "@/components/ui/badge";
 import type { GuideEntry } from "@/lib/content";
-import { getGuideHref, getReadingTime } from "@/lib/content";
+import { getGuideHref, getGuideStageLabel, getReadingTime } from "@/lib/content";
 
 interface Props {
   guide: GuideEntry;
 }
 
 const { guide } = Astro.props;
+const badgeLabel = getGuideStageLabel(guide);
+const badgeVariant = guide.data.stage === "braiins" ? "default" : "outline";
 ---
 
-<a href={getGuideHref(guide)} class="group block px-5 py-5 transition-colors hover:bg-muted/30">
+<a
+  href={getGuideHref(guide)}
+  class="group block border border-border/80 bg-background px-5 py-5 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-[0_20px_40px_rgba(15,23,42,0.08)]"
+>
   <div class="flex flex-wrap items-center gap-3">
-    <Badge variant={guide.data.kind === "primary" ? "default" : "outline"}>
-      {guide.data.kind === "primary" ? "Main route" : "Home node"}
-    </Badge>
+    <Badge variant={badgeVariant}>{badgeLabel}</Badge>
     <p class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
       {getReadingTime(guide)}
     </p>
+    <p class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+      {guide.data.setupType}
+    </p>
   </div>
-  <div class="mt-3 flex items-start justify-between gap-4">
+  <div class="mt-4 flex items-start justify-between gap-4">
     <div class="space-y-2">
       <h3 class="text-lg font-heading tracking-[-0.04em]">{guide.data.title}</h3>
       <p class="max-w-xl text-sm leading-7 text-foreground/74">

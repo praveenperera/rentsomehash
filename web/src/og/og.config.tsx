@@ -1,6 +1,7 @@
 import { BraiinsOceanCard } from "./cards/braiins-ocean";
 import { StartOsCard } from "./cards/startos";
 import { UmbrelCard } from "./cards/umbrel";
+import { VpsCard } from "./cards/vps";
 
 export default {
   fonts: [
@@ -31,7 +32,32 @@ export default {
   ],
   cards: [
     {
-      description: "Main Braiins to OCEAN OG card",
+      description: "Fresh VPS node setup OG card",
+      height: 630,
+      name: "vps",
+      outputs: [
+        {
+          format: "svg" as const,
+          path: "./vps.svg",
+        },
+        {
+          format: "png" as const,
+          path: "../../public/images/rentsomehash-og-vps.png",
+        },
+      ],
+      async render({
+        asset,
+      }: {
+        asset: { fitSvgDataUri: (path: string) => Promise<string> };
+      }) {
+        const artSrc = await asset.fitSvgDataUri("./assets/braiins-art.svg");
+
+        return <VpsCard artSrc={artSrc} />;
+      },
+      width: 1200,
+    },
+    {
+      description: "Shared Braiins OG card",
       height: 630,
       name: "braiins-ocean",
       outputs: [
@@ -44,7 +70,11 @@ export default {
           path: "../../public/images/rentsomehash-og-braiins-ocean.png",
         },
       ],
-      async render({ asset }: { asset: { fitSvgDataUri: (path: string) => Promise<string> } }) {
+      async render({
+        asset,
+      }: {
+        asset: { fitSvgDataUri: (path: string) => Promise<string> };
+      }) {
         const artSrc = await asset.fitSvgDataUri("./assets/braiins-art.svg");
 
         return <BraiinsOceanCard artSrc={artSrc} />;
@@ -65,7 +95,11 @@ export default {
           path: "../../public/images/rentsomehash-og-startos.png",
         },
       ],
-      async render({ asset }: { asset: { fitSvgDataUri: (path: string) => Promise<string> } }) {
+      async render({
+        asset,
+      }: {
+        asset: { fitSvgDataUri: (path: string) => Promise<string> };
+      }) {
         const artSrc = await asset.fitSvgDataUri("./assets/startos-art.svg");
 
         return <StartOsCard artSrc={artSrc} />;
@@ -86,7 +120,11 @@ export default {
           path: "../../public/images/rentsomehash-og-umbrel.png",
         },
       ],
-      async render({ asset }: { asset: { fitSvgDataUri: (path: string) => Promise<string> } }) {
+      async render({
+        asset,
+      }: {
+        asset: { fitSvgDataUri: (path: string) => Promise<string> };
+      }) {
         const artSrc = await asset.fitSvgDataUri("./assets/umbrel-art.svg");
 
         return <UmbrelCard artSrc={artSrc} />;
