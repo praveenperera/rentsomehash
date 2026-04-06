@@ -249,6 +249,11 @@
   @apply my-6 w-full border-collapse text-left text-sm;
 }
 
+.content-prose img {
+  @apply my-6 mx-auto block h-auto w-full border border-border/70 bg-muted/20;
+  max-width: 48rem;
+}
+
 .content-prose th,
 .content-prose td {
   @apply border border-border/70 px-3 py-2 align-top;

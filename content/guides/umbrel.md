@@ -38,7 +38,11 @@ Install Bitcoin Knots from the Umbrel App Store:
 
 <https://apps.umbrel.com/app/bitcoin-knots>
 
+![Umbrel App Store search results showing the Bitcoin Knots app](/images/guides/umbrel/bitcoin-knots-install.png)
+
 The Knots app includes BIP-110 in the version selector, so if you want that build, select the BIP-110 version in the app settings.
+
+![Umbrel Bitcoin Knots settings showing the BIP-110 version selector](/images/guides/umbrel/bitcoin-knots-bip110.png)
 
 If your box is still syncing, let that finish before you try to use DATUM for anything serious.
 
@@ -47,6 +51,10 @@ If your box is still syncing, let that finish before you try to use DATUM for an
 Install DATUM from the Umbrel App Store:
 
 <https://apps.umbrel.com/app/datum>
+
+![Umbrel App Store search results showing the DATUM app](/images/guides/umbrel/datum-install.png)
+
+If Umbrel asks which node client DATUM should use during setup, select Bitcoin Knots.
 
 DATUM depends on Bitcoin Knots and connects to it automatically after installation.
 
@@ -72,6 +80,14 @@ The upstream DATUM README also requires block notifications from your node. If t
 
 <https://github.com/OCEAN-xyz/datum_gateway?tab=readme-ov-file#node-configuration>
 
+Umbrel's settings search helps you jump straight to each field:
+
+![Bitcoin Knots settings search in Umbrel showing where to edit DATUM-related node values](/images/guides/umbrel/bitcoin-knots-settings.png)
+
+![Bitcoin Knots settings search in Umbrel showing the block reconstruction extra transaction field](/images/guides/umbrel/bitcoin-knots-reconstruction.png)
+
+![Bitcoin Knots settings search in Umbrel showing the block max size and block max weight fields](/images/guides/umbrel/bitcoin-knots-blockmax.png)
+
 After changing any Knots values, restart Bitcoin Knots and make sure it comes back cleanly before you move on.
 
 ## 4. Configure DATUM before you test anything
@@ -83,9 +99,15 @@ Two details matter immediately:
 
 If you need the in-app credentials to change settings, right-click the DATUM app icon on the Umbrel home screen and choose `Show default credentials`.
 
+![DATUM Gateway config screen in Umbrel showing the Bitcoin Address field and optional Coinbase Tag field](/images/guides/umbrel/datum-config.png)
+
 ## 5. Find the Umbrel box IP on your local network
 
 You can find the box IP in `Settings` on the umbrelOS home screen.
+
+![Umbrel home screen showing the Settings app](/images/guides/umbrel/umbrel-open-settings.png)
+
+![Umbrel settings screen showing the local IP field for the box on the home network](/images/guides/umbrel/umbrel-settings-local-ip.png)
 
 On your local network, DATUM listens on:
 
@@ -101,7 +123,13 @@ Set a router port forward so inbound TCP traffic on port `23334` goes to the Umb
 
 The important part is that the forward targets the Umbrel box running DATUM, not the wrong machine on your network.
 
+The screenshots below are example ASUS router screens. Your router UI will look different, but look for similar wording such as `Port Forwarding`, `Virtual Server`, `NAT`, `LAN`, or `DHCP`.
+
+![Example router port forwarding screen showing where to forward TCP port 23334 to the Umbrel machine](/images/guides/umbrel/router-port-forward-example.png)
+
 If your router lets you reserve DHCP leases, it is worth pinning the Umbrel box to one local IP so the forward does not silently break later.
+
+![Example router DHCP reservation screen showing how to pin the Umbrel box to one local IP](/images/guides/umbrel/router-dhcp-reservation-example.png)
 
 - make the forward TCP-only, not TCP+UDP
 - if your router or firewall supports it, restrict allowed source IP ranges instead of exposing the port broadly
@@ -123,9 +151,15 @@ stratum+tcp://hostname.domain.com:23334
 
 Replace `hostname.domain.com` with the actual DDNS hostname your router keeps updated.
 
+![Example router DDNS screen showing a hostname configured for dynamic DNS](/images/guides/umbrel/router-ddns-example.png)
+
 Before proceeding, verify from a network outside your home LAN that `hostname.domain.com:23334` or `your-public-ip:23334` accepts connections.
 
-Simple ways to check include using a remote machine, an online port-check tool, or running a remote test such as `telnet hostname.domain.com 23334` or `curl telnet://hostname.domain.com:23334`.
+Simple ways to check include using a remote machine, an online port-check tool such as YouGetSignal, or running a remote test such as `telnet hostname.domain.com 23334` or `curl telnet://hostname.domain.com:23334`.
+
+Here is an example of the kind of port-check interface you can use:
+
+![Example open port checker showing the kind of tool you can use to verify the forwarded port is reachable](/images/guides/umbrel/open-port-check-example.png)
 
 If the check fails, fix your DDNS or port-forwarding setup before moving on.
 

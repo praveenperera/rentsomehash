@@ -102,11 +102,17 @@ Create a Braiins hashpower account here:
 
 <https://hashpower.braiins.com/>
 
+![Braiins homepage showing where to create a hashpower account](/images/guides/braiins-ocean/braiins-signup.png)
+
 Then do the Telegram verification they require, and send BTC to the deposit address they give you.
+
+![Braiins account page showing where to find the deposit BTC address](/images/guides/braiins-ocean/braiins-deposit-address.png)
 
 ## 7. Create the bid
 
 Once the box is ready and Braiins is funded, create the bid.
+
+![Braiins create bid dialog showing the main fields for price, budget, pool URL, and pool username](/images/guides/braiins-ocean/braiins-create-bid.png)
 
 ### Price and budget
 
