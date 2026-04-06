@@ -51,11 +51,14 @@ Common cases:
 
 - VPS guide: `stratum+tcp://your-vps-ip:23334`
 - StartOS with Start Tunnel: `stratum+tcp://your-start-tunnel-vps-ip:23334`
-- StartOS with direct port forwarding: `stratum+tcp://your-public-ip-or-ddns-hostname:23334`
+- StartOS with direct port forwarding and DDNS: `stratum+tcp://hostname.domain.com:23334`
+- StartOS with direct port forwarding and a stable static IP: `stratum+tcp://your-public-ip:23334`
 - Umbrel with DDNS: `stratum+tcp://hostname.domain.com:23334`
-- Umbrel with direct public IP: `stratum+tcp://your-public-ip:23334`
+- Umbrel with a stable static public IP: `stratum+tcp://your-public-ip:23334`
 
 Never paste a private LAN address like `192.168.x.y` into Braiins.
+
+Do not create the bid until that endpoint is stable. Braiins will not let you change the stratum target inside an existing bid, so a dynamic home IP is the wrong input unless DDNS or tunneling is already keeping that endpoint stable.
 
 ## 3. Use the right pool username
 
@@ -90,6 +93,8 @@ The faster you burn through sats, the more variance you will suffer. That can go
 ### Mining pool URL
 
 Paste the public DATUM endpoint from your node guide exactly as shown there.
+
+For home-hosted setups, that should be a DDNS hostname, a tunneled endpoint, or a truly stable static public IP. Do not use a rotating home IP here.
 
 ### Pool username
 

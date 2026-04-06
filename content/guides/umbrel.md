@@ -137,7 +137,13 @@ If your router lets you reserve DHCP leases, it is worth pinning the Umbrel box 
 
 ## 7. Point Braiins at the endpoint you actually expose
 
-There are two reasonable ways to do this once the port forward is live.
+For Braiins, this needs to be a stable public endpoint, not just whatever home IP you happen to have right now.
+
+Braiins will not let you change the stratum target inside an existing bid.
+
+If your home IP changes after the bid is live, that bid is effectively dead until you create a new path with a working endpoint.
+
+That means dynamic home connections should not use a raw public IP with Braiins. Use DDNS or put some tunnel in front of the box before creating the bid.
 
 ### 7a. If your router supports DDNS
 
@@ -153,7 +159,7 @@ Replace `hostname.domain.com` with the actual DDNS hostname your router keeps up
 
 ![Example router DDNS screen showing a hostname configured for dynamic DNS](/images/guides/umbrel/router-ddns-example.png)
 
-Before proceeding, verify from a network outside your home LAN that `hostname.domain.com:23334` or `your-public-ip:23334` accepts connections.
+Before proceeding, verify from a network outside your home LAN that `hostname.domain.com:23334` accepts connections.
 
 Simple ways to check include using a remote machine, an online port-check tool such as YouGetSignal, or running a remote test such as `telnet hostname.domain.com 23334` or `curl telnet://hostname.domain.com:23334`.
 
@@ -163,17 +169,17 @@ Here is an example of the kind of port-check interface you can use:
 
 If the check fails, fix your DDNS or port-forwarding setup before moving on.
 
-### 7b. If you are using the raw public IP
+### 7b. If your ISP gives you a stable static public IP
 
-If you are not using DDNS, Braiins should use your public home IP on port `23334`:
+If your home connection really does have a stable static public IP and you are intentionally using that instead of DDNS, Braiins can use it on port `23334`:
 
 ```text
 stratum+tcp://your-public-ip:23334
 ```
 
-Replace `your-public-ip` with the actual public IP of your home connection.
+Replace `your-public-ip` with the actual stable static public IP of your home connection.
 
-If your ISP changes that IP, Braiins will need the new one.
+If your ISP changes that IP, stop and fix the endpoint before spending more sats on Braiins.
 
 ## 8. What you bring into Braiins
 
