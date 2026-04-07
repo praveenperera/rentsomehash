@@ -78,56 +78,60 @@ export function HashpowerCalculator() {
     : null;
   const priceSlider = priceSliderRange(displayedPrice);
   const budgetSliderMax = Math.max(10_000, budgetUsd);
+  const showSupplementaryCards = data !== null;
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 lg:grid-cols-[0.78fr_1.22fr]">
-        <Card className="border-primary/30 bg-card/92">
-          <CardHeader className="space-y-2">
-            <CardTitle className="text-xl tracking-[-0.06em]">
-              Adjust the rental inputs
-            </CardTitle>
-            <CardDescription className="text-sm leading-7">
-              Hashpower price starts from the live Braiins best ask. If you edit
-              it, the calculator uses your custom sats/PH/day assumption.
-              Results are estimates based on current inputs, not a forecast.
-            </CardDescription>
-          </CardHeader>
-          <CalculatorControls
-            budgetSliderMax={budgetSliderMax}
-            budgetUsd={budgetUsd}
-            displayedPrice={displayedPrice}
-            durationDays={durationDays}
-            priceTouched={priceTouched}
-            priceSlider={priceSlider}
-            onBudgetChange={setBudgetUsd}
-            onDurationChange={setDurationDays}
-            onPriceChange={(value) => {
-              setPriceTouched(true);
-              setPriceSatsPerPhDay(value);
-            }}
-            onResetPrice={() => {
-              setPriceTouched(false);
-              setPriceSatsPerPhDay(braiinsBestAskPrice);
-            }}
-          />
-        </Card>
+    <div className="grid gap-4 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
+      <Card
+        className={cn(
+          "border-primary/30 bg-card/92",
+          showSupplementaryCards && "lg:row-span-2",
+        )}
+      >
+        <CardHeader className="space-y-2">
+          <CardTitle className="text-xl tracking-[-0.06em]">
+            Adjust the rental inputs
+          </CardTitle>
+          <CardDescription className="text-sm leading-7">
+            Hashpower price starts from the live Braiins best ask. If you edit
+            it, the calculator uses your custom sats/PH/day assumption. Results
+            are estimates based on current inputs, not a forecast.
+          </CardDescription>
+        </CardHeader>
+        <CalculatorControls
+          budgetSliderMax={budgetSliderMax}
+          budgetUsd={budgetUsd}
+          displayedPrice={displayedPrice}
+          durationDays={durationDays}
+          priceTouched={priceTouched}
+          priceSlider={priceSlider}
+          onBudgetChange={setBudgetUsd}
+          onDurationChange={setDurationDays}
+          onPriceChange={(value) => {
+            setPriceTouched(true);
+            setPriceSatsPerPhDay(value);
+          }}
+          onResetPrice={() => {
+            setPriceTouched(false);
+            setPriceSatsPerPhDay(braiinsBestAskPrice);
+          }}
+        />
+      </Card>
 
-        <div className="space-y-4">
-          {state.status === "error" && (
-            <Alert variant="destructive">
-              <WarningIcon className="size-4" aria-hidden="true" />
-              <AlertTitle>Live calculator data unavailable</AlertTitle>
-              <AlertDescription>{state.error}</AlertDescription>
-            </Alert>
-          )}
+      <div className="space-y-4">
+        {state.status === "error" && (
+          <Alert variant="destructive">
+            <WarningIcon className="size-4" aria-hidden="true" />
+            <AlertTitle>Live calculator data unavailable</AlertTitle>
+            <AlertDescription>{state.error}</AlertDescription>
+          </Alert>
+        )}
 
-          {data ? (
-            <ResultsGrid data={data} priceModified={priceTouched} />
-          ) : (
-            <LoadingGrid />
-          )}
-        </div>
+        {data ? (
+          <ResultsGrid data={data} priceModified={priceTouched} />
+        ) : (
+          <LoadingGrid />
+        )}
       </div>
 
       {data && (
