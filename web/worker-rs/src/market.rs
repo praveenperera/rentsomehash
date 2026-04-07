@@ -28,12 +28,13 @@ impl MarketClient {
     pub async fn fetch(
         &self,
         ocean_fee_estimate: Option<OceanFeeEstimate>,
+        cached_ocean_timing: Option<OceanTiming>,
     ) -> Result<MarketSnapshot, String> {
         let spot = fetch_json::<BraiinsSpotStats>(BRAIINS_SPOT_STATS_URL);
         let orderbook = fetch_json::<BraiinsOrderbook>(BRAIINS_ORDERBOOK_URL);
         let difficulty = fetch_json::<BraiinsDifficultyStats>(BRAIINS_DIFFICULTY_STATS_URL);
         let btc_price = fetch_json::<BraiinsBtcPrice>(BRAIINS_BTC_PRICE_URL);
-        let ocean = fetch_ocean_timing();
+        let ocean = fetch_or_reuse_ocean_timing(cached_ocean_timing);
 
         let (spot, orderbook, difficulty, btc_price, ocean) =
             join!(spot, orderbook, difficulty, btc_price, ocean);
@@ -128,9 +129,9 @@ struct MempoolTxSummary {
 }
 
 #[derive(Clone, Debug)]
-struct OceanTiming {
-    hashrate_eh: f64,
-    average_time_to_block_hours: f64,
+pub struct OceanTiming {
+    pub hashrate_eh: f64,
+    pub average_time_to_block_hours: f64,
 }
 
 async fn fetch_json<T>(url: &str) -> Result<T, String>
@@ -209,6 +210,16 @@ async fn fetch_ocean_timing() -> Result<Option<OceanTiming>, String> {
         .map_err(|error| format!("OCEAN HTML read failed: {error}"))?;
 
     parse_ocean_timing(&html)
+}
+
+async fn fetch_or_reuse_ocean_timing(
+    cached_ocean_timing: Option<OceanTiming>,
+) -> Result<Option<OceanTiming>, String> {
+    if let Some(timing) = cached_ocean_timing {
+        return Ok(Some(timing));
+    }
+
+    fetch_ocean_timing().await
 }
 
 fn parse_ocean_timing(html: &str) -> Result<Option<OceanTiming>, String> {

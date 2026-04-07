@@ -16,4 +16,4 @@ preview_id = "6bc452952117433784545a2769c77267"
 [assets]
 directory = "./dist"
 binding = "ASSETS"
-run_worker_first = true
+run_worker_first = ["/api/*"]

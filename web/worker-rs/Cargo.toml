@@ -8,6 +8,7 @@ authors = ["Praveen Perera"]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+blake3 = "1.8.2"
 futures = "0.3.32"
 js-sys = "0.3.94"
 regex = "1.12.3"

@@ -6,18 +6,17 @@ mod types;
 use cache::MarketCache;
 use calculator::{HashpowerCalculator, QueryInput};
 use js_sys::Date;
+use serde::Serialize;
 use types::{ApiError, ApiErrorResponse, CalculatorWarning, HashpowerCalculatorResponse};
 use worker::{Env, Request, Response, Result, event};
 
-const CANONICAL_HOSTNAME: &str = "rentsomehash.com";
-const WWW_CANONICAL_HOSTNAME: &str = "www.rentsomehash.com";
+const API_CACHE_CONTROL: &str = "public, max-age=120, stale-while-revalidate=60";
+const ERROR_CACHE_CONTROL: &str = "no-store";
+const JSON_CONTENT_TYPE: &str = "application/json; charset=utf-8";
+const VARY_HEADER_VALUE: &str = "Accept-Encoding";
 
 #[event(fetch)]
 pub async fn fetch(request: Request, env: Env, _ctx: worker::Context) -> Result<Response> {
-    if let Some(response) = canonical_redirect(&request)? {
-        return Ok(response);
-    }
-
     if request.path() == "/api/hashpower-calculator" {
         return hashpower_calculator(request, env).await;
     }
@@ -35,14 +34,16 @@ async fn hashpower_calculator(request: Request, env: Env) -> Result<Response> {
     let inputs = match query.with_market_defaults(&cache_result.market) {
         Ok(inputs) => inputs,
         Err(fields) => {
-            let error = ApiErrorResponse {
-                error: ApiError {
-                    code: "INVALID_INPUT".to_string(),
-                    message: "Calculator input is invalid".to_string(),
-                    fields,
+            return error_response(
+                400,
+                &ApiErrorResponse {
+                    error: ApiError {
+                        code: "INVALID_INPUT".to_string(),
+                        message: "Calculator input is invalid".to_string(),
+                        fields,
+                    },
                 },
-            };
-            return Ok(Response::from_json(&error)?.with_status(400));
+            );
         }
     };
 
@@ -51,35 +52,71 @@ async fn hashpower_calculator(request: Request, env: Env) -> Result<Response> {
     let mut warnings = calculator.warnings(&results);
     warnings.append(&mut cache_result.warnings);
 
-    Response::from_json(&HashpowerCalculatorResponse {
-        inputs,
-        market: cache_result.market,
-        results,
-        warnings: unique_warnings(warnings),
-        stale: cache_result.stale,
-        cache_mode: cache_result.cache_mode,
-    })
+    json_response(
+        &request,
+        &HashpowerCalculatorResponse {
+            inputs,
+            market: cache_result.market,
+            results,
+            warnings: unique_warnings(warnings),
+            stale: cache_result.stale,
+            cache_mode: cache_result.cache_mode,
+        },
+    )
 }
 
-fn canonical_redirect(request: &Request) -> Result<Option<Response>> {
-    let mut url = request.url()?;
+fn json_response<T>(request: &Request, body: &T) -> Result<Response>
+where
+    T: Serialize,
+{
+    let body = serde_json::to_vec(body)
+        .map_err(|error| worker::Error::RustError(format!("failed to serialize JSON: {error}")))?;
+    let etag = response_etag(&body);
 
-    if url.scheme() == "https" && url.host_str() != Some(WWW_CANONICAL_HOSTNAME) {
-        return Ok(None);
+    if request_matches_etag(request, &etag)? {
+        let mut response = Response::empty()?.with_status(304);
+        set_api_headers(&mut response, &etag)?;
+        return Ok(response);
     }
 
-    set_canonical_url(&mut url)?;
-    Ok(Some(Response::redirect_with_status(url, 308)?))
+    let mut response = Response::builder().with_status(200).fixed(body);
+    set_api_headers(&mut response, &etag)?;
+    response
+        .headers_mut()
+        .set("Content-Type", JSON_CONTENT_TYPE)?;
+
+    Ok(response)
 }
 
-fn set_canonical_url(url: &mut url::Url) -> Result<()> {
-    url.set_scheme("https")
-        .map_err(|_| worker::Error::RustError("failed to set canonical scheme".to_string()))?;
-    url.set_host(Some(CANONICAL_HOSTNAME)).map_err(|error| {
-        worker::Error::RustError(format!("failed to set canonical host: {error}"))
-    })?;
-    url.set_port(None)
-        .map_err(|_| worker::Error::RustError("failed to clear canonical port".to_string()))
+fn error_response(status: u16, body: &ApiErrorResponse) -> Result<Response> {
+    let mut response = Response::from_json(body)?.with_status(status);
+    response
+        .headers_mut()
+        .set("Cache-Control", ERROR_CACHE_CONTROL)?;
+    Ok(response)
+}
+
+fn set_api_headers(response: &mut Response, etag: &str) -> Result<()> {
+    let headers = response.headers_mut();
+    headers.set("Cache-Control", API_CACHE_CONTROL)?;
+    headers.set("ETag", etag)?;
+    headers.set("Vary", VARY_HEADER_VALUE)?;
+    Ok(())
+}
+
+fn request_matches_etag(request: &Request, etag: &str) -> Result<bool> {
+    let Some(if_none_match) = request.headers().get("If-None-Match")? else {
+        return Ok(false);
+    };
+
+    Ok(if_none_match
+        .split(',')
+        .map(str::trim)
+        .any(|candidate| candidate == "*" || candidate == etag))
+}
+
+fn response_etag(body: &[u8]) -> String {
+    format!("W/\"{}\"", blake3::hash(body).to_hex())
 }
 
 fn parse_query(request: &Request) -> Result<QueryInput> {
@@ -109,15 +146,16 @@ fn parse_optional_number(value: &str) -> Option<f64> {
 }
 
 fn json_error(status: u16, code: &str, message: &str) -> Result<Response> {
-    let response = ApiErrorResponse {
-        error: ApiError {
-            code: code.to_string(),
-            message: message.to_string(),
-            fields: Vec::new(),
+    error_response(
+        status,
+        &ApiErrorResponse {
+            error: ApiError {
+                code: code.to_string(),
+                message: message.to_string(),
+                fields: Vec::new(),
+            },
         },
-    };
-
-    Ok(Response::from_json(&response)?.with_status(status))
+    )
 }
 
 fn unique_warnings(warnings: Vec<CalculatorWarning>) -> Vec<CalculatorWarning> {

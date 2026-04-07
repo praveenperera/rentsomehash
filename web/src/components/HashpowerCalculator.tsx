@@ -49,6 +49,8 @@ const OCEAN_DATUM_POOL_FEE_RATE = 0.01;
 const HASHES_PER_EH = 1e18;
 const MAX_U32_TARGET = 4_294_967_296;
 const SECONDS_PER_DAY = 86_400;
+const MARKET_DATA_CACHE_KEY = "hashpower-calculator:market-data:v1";
+const MARKET_DATA_CACHE_TTL_MS = 120_000;
 const LOCAL_WARNING_CODES = new Set<WarningCode>([
   "EXPECTED_VALUE_ONLY",
   "SIMPLIFIED_MODEL",
@@ -56,6 +58,42 @@ const LOCAL_WARNING_CODES = new Set<WarningCode>([
   "OCEAN_TIMING_UNAVAILABLE",
   "SHORT_OCEAN_WINDOW",
 ]);
+const FAQ_ITEMS = [
+  {
+    question: "Is this a forecast?",
+    answer:
+      "No. It is an expected-value comparison using current inputs and current market data. Actual mining results can land above or below the estimate.",
+  },
+  {
+    question: "Why might I earn less than expected?",
+    answer:
+      "This is an estimate, not a promise. The numbers use recent OCEAN block fees minus the 1% DATUM fee, but the real world does not care about our math. Difficulty jumps, fee crashes, bid slippage, and mining variance can all swing your actual payout up or down. Hash rental prices will also shift during that period. Shorter windows get hit harder by block variance.",
+  },
+  {
+    question: "What does one fewer block impact mean?",
+    answer:
+      "This percentage shows how sensitive your estimate is to variance. At current OCEAN hashrate, a 7-day rental expects ~15 blocks. Miss one and your payout drops ~6.5% below estimate. A 30-day rental expects ~65 blocks — miss one and you are only down ~1.5%. Longer rentals smooth out block variance.",
+  },
+  {
+    question: "Why is 30 days the default duration?",
+    answer:
+      "30 days hits a sweet spot — long enough for OCEAN to find ~65 blocks, which smooths out variance. Miss one block and you are only down ~1.5% vs ~6.5% over 7 days (~15 blocks). Shorter rentals mean each missed block stings more.",
+  },
+  {
+    question: "How are average transaction fees calculated?",
+    answer:
+      "We grab up to 12 recent OCEAN blocks and pull the fee data from mempool.space for each. Add up the fees per block, take the average, then add that to the 3.125 BTC subsidy. Then we knock off 1% for OCEAN's DATUM fee. No fee data available? We fall back to subsidy-only.",
+  },
+  {
+    question: "Why compare against buying spot BTC?",
+    answer:
+      "Buying spot is the clean baseline for the same budget. The calculator shows whether the current rental assumptions are expected to return more or less BTC than simply buying bitcoin outright.",
+  },
+] as const;
+const DEFAULT_FAQ_ITEM_ID = faqItemId(FAQ_ITEMS[0].question);
+const FAQ_ITEM_IDS = new Set<string>(
+  FAQ_ITEMS.map((item) => faqItemId(item.question)),
+);
 
 type LoadState =
   | { status: "loading"; data: HashpowerCalculatorResponse | null; error: null }
@@ -65,6 +103,12 @@ type LoadState =
       data: HashpowerCalculatorResponse | null;
       error: string;
     };
+
+type StoredMarketData = {
+  body: HashpowerCalculatorResponse;
+  etag: string | null;
+  savedAt: number;
+};
 
 export function HashpowerCalculator() {
   const [budgetUsd, setBudgetUsd] = React.useState(DEFAULT_BUDGET_USD);
@@ -656,38 +700,41 @@ function WarningsCard({ data }: { data: HashpowerCalculatorResponse }) {
 }
 
 function CalculatorFaqCard() {
-  const items = [
-    {
-      question: "Is this a forecast?",
-      answer:
-        "No. It is an expected-value comparison using current inputs and current market data. Actual mining results can land above or below the estimate.",
-    },
-    {
-      question: "Why might I earn less than expected?",
-      answer:
-        "This is an estimate, not a promise. The numbers use recent OCEAN block fees minus the 1% DATUM fee, but the real world does not care about our math. Difficulty jumps, fee crashes, bid slippage, and mining variance can all swing your actual payout up or down. Hash rental prices will also shift during that period. Shorter windows get hit harder by block variance.",
-    },
-    {
-      question: "What does one fewer block impact mean?",
-      answer:
-        "This percentage shows how sensitive your estimate is to variance. At current OCEAN hashrate, a 7-day rental expects ~15 blocks. Miss one and your payout drops ~6.5% below estimate. A 30-day rental expects ~65 blocks — miss one and you are only down ~1.5%. Longer rentals smooth out block variance.",
-    },
-    {
-      question: "Why is 30 days the default duration?",
-      answer:
-        "30 days hits a sweet spot — long enough for OCEAN to find ~65 blocks, which smooths out variance. Miss one block and you are only down ~1.5% vs ~6.5% over 7 days (~15 blocks). Shorter rentals mean each missed block stings more.",
-    },
-    {
-      question: "How are average transaction fees calculated?",
-      answer:
-        "We grab up to 12 recent OCEAN blocks and pull the fee data from mempool.space for each. Add up the fees per block, take the average, then add that to the 3.125 BTC subsidy. Then we knock off 1% for OCEAN's DATUM fee. No fee data available? We fall back to subsidy-only.",
-    },
-    {
-      question: "Why compare against buying spot BTC?",
-      answer:
-        "Buying spot is the clean baseline for the same budget. The calculator shows whether the current rental assumptions are expected to return more or less BTC than simply buying bitcoin outright.",
-    },
-  ];
+  const [openItems, setOpenItems] = React.useState<string[]>([
+    DEFAULT_FAQ_ITEM_ID,
+  ]);
+
+  React.useEffect(() => {
+    const openHashItem = () => {
+      const itemId = faqItemIdFromHash(window.location.hash);
+
+      if (!FAQ_ITEM_IDS.has(itemId)) {
+        return;
+      }
+
+      setOpenItems([itemId]);
+      document.getElementById(itemId)?.scrollIntoView({ block: "start" });
+    };
+
+    openHashItem();
+    window.addEventListener("hashchange", openHashItem);
+
+    return () => window.removeEventListener("hashchange", openHashItem);
+  }, []);
+
+  function handleFaqValueChange(value: string[]) {
+    setOpenItems(value);
+
+    const itemId = value.at(-1);
+
+    if (!itemId) {
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    url.hash = itemId;
+    window.history.replaceState(null, "", url);
+  }
 
   return (
     <Card className="bg-card/86">
@@ -700,29 +747,74 @@ function CalculatorFaqCard() {
       <CardContent>
         <Accordion
           className="border border-border/70 bg-background/40"
-          defaultValue={[items[0]?.question ?? ""]}
+          value={openItems}
+          onValueChange={handleFaqValueChange}
         >
-          {items.map((item) => (
-            <AccordionItem key={item.question} value={item.question}>
-              <AccordionTrigger className="px-4 py-4 text-sm font-heading tracking-[-0.03em]">
-                {item.question}
-              </AccordionTrigger>
-              <AccordionContent className="px-4 text-sm leading-7 text-foreground/74">
-                {item.answer}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
+          {FAQ_ITEMS.map((item) => {
+            const itemId = faqItemId(item.question);
+
+            return (
+              <AccordionItem
+                id={itemId}
+                key={itemId}
+                value={itemId}
+                className="scroll-mt-24"
+              >
+                <AccordionTrigger className="px-4 py-4 text-sm font-heading tracking-[-0.03em]">
+                  {item.question}
+                </AccordionTrigger>
+                <AccordionContent className="px-4 text-sm leading-7 text-foreground/74">
+                  {item.answer}
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
         </Accordion>
       </CardContent>
     </Card>
   );
 }
 
-async function loadMarketData(signal: AbortSignal) {
+function faqItemId(question: string) {
+  return `faq-${question
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")}`;
+}
+
+function faqItemIdFromHash(hash: string) {
+  const itemId = hash.slice(1);
+
   try {
-    const response = await fetch("/api/hashpower-calculator", {
-      signal,
-    });
+    return decodeURIComponent(itemId);
+  } catch {
+    return itemId;
+  }
+}
+
+async function loadMarketData(signal: AbortSignal) {
+  const cached = readStoredMarketData();
+
+  if (cached && isStoredMarketDataFresh(cached)) {
+    return cached.body;
+  }
+
+  try {
+    const response = await fetch(
+      "/api/hashpower-calculator",
+      requestInit(signal, cached),
+    );
+
+    if (response.status === 304) {
+      if (cached) {
+        writeStoredMarketData(cached.body, cached.etag);
+        return cached.body;
+      }
+
+      clearStoredMarketData();
+      return loadMarketData(signal);
+    }
+
     const body = (await response.json()) as
       | HashpowerCalculatorResponse
       | ApiErrorResponse;
@@ -733,7 +825,9 @@ async function loadMarketData(signal: AbortSignal) {
       );
     }
 
-    return body as HashpowerCalculatorResponse;
+    const data = body as HashpowerCalculatorResponse;
+    writeStoredMarketData(data, response.headers.get("ETag"));
+    return data;
   } catch (error) {
     if (!import.meta.env.DEV || signal.aborted) {
       throw error;
@@ -742,6 +836,111 @@ async function loadMarketData(signal: AbortSignal) {
     // astro dev does not run the Cloudflare worker API, so use a stable snapshot locally
     return DEV_MARKET_DATA;
   }
+}
+
+function requestInit(signal: AbortSignal, cached: StoredMarketData | null) {
+  const headers = cached?.etag
+    ? {
+        "If-None-Match": cached.etag,
+      }
+    : undefined;
+
+  return {
+    signal,
+    headers,
+  };
+}
+
+function readStoredMarketData(): StoredMarketData | null {
+  const storage = browserStorage();
+
+  if (!storage) {
+    return null;
+  }
+
+  try {
+    const raw = storage.getItem(MARKET_DATA_CACHE_KEY);
+
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw) as unknown;
+
+    if (isStoredMarketData(parsed)) {
+      return parsed;
+    }
+  } catch {
+    // ignore storage and JSON parsing failures
+  }
+
+  clearStoredMarketData();
+  return null;
+}
+
+function writeStoredMarketData(
+  body: HashpowerCalculatorResponse,
+  etag: string | null,
+) {
+  const storage = browserStorage();
+
+  if (!storage) {
+    return;
+  }
+
+  try {
+    const data: StoredMarketData = {
+      body,
+      etag,
+      savedAt: Date.now(),
+    };
+
+    storage.setItem(MARKET_DATA_CACHE_KEY, JSON.stringify(data));
+  } catch {
+    // ignore storage write failures
+  }
+}
+
+function clearStoredMarketData() {
+  const storage = browserStorage();
+
+  if (!storage) {
+    return;
+  }
+
+  try {
+    storage.removeItem(MARKET_DATA_CACHE_KEY);
+  } catch {
+    // ignore storage removal failures
+  }
+}
+
+function browserStorage() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return window.localStorage;
+}
+
+function isStoredMarketDataFresh(data: StoredMarketData) {
+  return Date.now() - data.savedAt < MARKET_DATA_CACHE_TTL_MS;
+}
+
+function isStoredMarketData(value: unknown): value is StoredMarketData {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const data = value as Partial<StoredMarketData>;
+
+  return (
+    typeof data.savedAt === "number" &&
+    "etag" in data &&
+    (data.etag === null || typeof data.etag === "string") &&
+    !!data.body &&
+    typeof data.body === "object"
+  );
 }
 
 const DEV_MARKET_DATA: HashpowerCalculatorResponse = {
