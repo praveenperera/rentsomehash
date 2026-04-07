@@ -635,7 +635,24 @@ function OceanTimingCard({ data }: { data: HashpowerCalculatorResponse }) {
             }
           />
           <TimingItem
-            label="Avg tx fees / block"
+            label={
+              <span className="inline-flex items-center gap-1.5">
+                Avg tx fees / block
+                <Tooltip>
+                  <TooltipTrigger
+                    aria-label="Explain average tx fees calculation"
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <QuestionIcon className="size-4" aria-hidden="true" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Up to 12 recent OCEAN blocks are sampled. For each block,
+                    the transaction fee total is pulled from mempool.space. The
+                    average of those per-block fee totals is shown here.
+                  </TooltipContent>
+                </Tooltip>
+              </span>
+            }
             value={
               data.market.oceanAverageBlockTxFeesBtc
                 ? `${formatBtc(data.market.oceanAverageBlockTxFeesBtc)} BTC`
