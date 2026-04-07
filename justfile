@@ -1,5 +1,5 @@
 node := "fnm exec --using .node-version --"
-worker := "web/worker-rs"
+api := "api"
 api_types := "web/src/lib/generated/hashpower-calculator"
 
 alias gt := generate-types
@@ -10,7 +10,7 @@ dev:
     {{ node }} zsh -lc 'cd web && npm run dev -- --open'
 
 # build the site
-build: install worker-check
+build: install
     {{ node }} zsh -lc 'cd web && npm run build'
 
 # install dependencies
@@ -18,25 +18,34 @@ install:
     {{ node }} zsh -lc 'cd web && npm install'
 
 # run project checks
-check: check-types worker-check
+check: check-types api-check
     {{ node }} zsh -lc 'cd web && npm run check'
 
 # format project code
 fmt:
-    cargo fmt --manifest-path {{ worker }}/Cargo.toml
+    cargo fmt --manifest-path {{ api }}/Cargo.toml
     {{ node }} zsh -lc 'cd web && npx prettier --write .'
 
-# lint rust worker
+# lint rust api worker
 clippy:
-    cargo clippy --manifest-path {{ worker }}/Cargo.toml --all-targets --all-features -- -D warnings
+    cargo clippy --manifest-path {{ api }}/Cargo.toml --all-targets --all-features -- -D warnings
 
-# check rust worker wasm target
-worker-check:
-    cargo check --manifest-path {{ worker }}/Cargo.toml --target wasm32-unknown-unknown
+# check rust api worker wasm target
+api-check:
+    cargo check --manifest-path {{ api }}/Cargo.toml --target wasm32-unknown-unknown
+
+# build rust api worker bundle for deploys
+bundle-api:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! command -v worker-build >/dev/null 2>&1; then
+        cargo install -q worker-build --version 0.7.5
+    fi
+    cd {{ api }} && worker-build --release
 
 # generate rust-owned frontend api types
 generate-types:
-    cd {{ worker }} && TS_RS_EXPORT_DIR=../src/lib/generated/hashpower-calculator cargo test export_bindings
+    cd {{ api }} && TS_RS_EXPORT_DIR=../web/src/lib/generated/hashpower-calculator cargo test export_bindings
 
 # check generated api types are current
 check-types:
@@ -44,7 +53,7 @@ check-types:
     set -euo pipefail
     tmp="$(mktemp -d)"
     trap 'rm -rf "$tmp"' EXIT
-    (cd {{ worker }} && TS_RS_EXPORT_DIR="$tmp" cargo test export_bindings >/dev/null)
+    (cd {{ api }} && TS_RS_EXPORT_DIR="$tmp" cargo test export_bindings >/dev/null)
     diff -ru "$tmp" "{{ api_types }}"
 
 # update all dependencies
@@ -54,6 +63,10 @@ update:
 # deploy to cloudflare workers
 deploy: build
     {{ node }} zsh -lc 'cd web && npx --yes wrangler deploy'
+
+# deploy calculator api to cloudflare workers
+deploy-api: bundle-api
+    {{ node }} zsh -lc 'cd web && npx --yes wrangler deploy --config ../api/wrangler.toml'
 
 # deploy preview to cloudflare workers (optional: just preview <subdomain>)
 preview subdomain="": build

@@ -21,7 +21,7 @@ pub async fn fetch(request: Request, env: Env, _ctx: worker::Context) -> Result<
         return hashpower_calculator(request, env).await;
     }
 
-    env.assets("ASSETS")?.fetch_request(request).await
+    Response::error("Not Found", 404)
 }
 
 async fn hashpower_calculator(request: Request, env: Env) -> Result<Response> {
