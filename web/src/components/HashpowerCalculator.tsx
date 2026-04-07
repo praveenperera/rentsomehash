@@ -340,6 +340,11 @@ function ResultsGrid({
             ? "Estimated after 1% OCEAN DATUM fee, subsidy-only"
             : "Estimated with recent tx fees and 1% OCEAN DATUM fee"
         }
+        detail={
+          <RewardBreakdown
+            averageTxFeesBtc={data.market.oceanAverageBlockTxFeesBtc}
+          />
+        }
       />
       <MetricCard
         eyebrow="Buying spot"
@@ -375,11 +380,13 @@ function MetricCard({
   title,
   description,
   modified = false,
+  detail,
 }: {
   eyebrow: string;
   title: React.ReactNode;
   description: string;
   modified?: boolean;
+  detail?: React.ReactNode;
 }) {
   return (
     <Card
@@ -395,8 +402,25 @@ function MetricCard({
         </p>
         <CardTitle className="text-2xl tracking-[-0.08em]">{title}</CardTitle>
         <CardDescription className="text-sm">{description}</CardDescription>
+        {detail}
       </CardHeader>
     </Card>
+  );
+}
+
+function RewardBreakdown({
+  averageTxFeesBtc,
+}: {
+  averageTxFeesBtc: number | null;
+}) {
+  return (
+    <p className="font-mono text-[11px] leading-5 text-muted-foreground">
+      3.125 subsidy
+      {averageTxFeesBtc === null
+        ? " + unavailable tx fees"
+        : ` + ${formatBtc(averageTxFeesBtc)} avg tx fees`}
+      {" - 1% OCEAN fee"}
+    </p>
   );
 }
 
