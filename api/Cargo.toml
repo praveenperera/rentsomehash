@@ -1,5 +1,5 @@
 [package]
-name = "rentsomehash-worker"
+name = "rentsomehash-api"
 version = "0.1.0"
 edition = "2024"
 authors = ["Praveen Perera"]

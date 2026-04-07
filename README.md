@@ -5,7 +5,8 @@ Static Astro site for `rentsomehash.com`.
 The site is split into:
 
 - `content/` for editorial content
-- `web/` for the Astro app, styling, and Cloudflare deployment code
+- `web/` for the Astro app, styling, and frontend Cloudflare Worker
+- `api/` for the Rust calculator API Worker
 
 ## How To Change Content
 
@@ -106,16 +107,19 @@ Run these from the repo root:
 - `just dev` to start the Astro dev server
 - `just check` to run Astro checks
 - `just build` to build the site
-- `just deploy` to deploy to Cloudflare
+- `just deploy` to deploy the frontend Worker to Cloudflare
+- `just deploy-api` to deploy the calculator API Worker to Cloudflare
 - `just preview <subdomain>` to upload a preview build
 
 If you want to work directly inside `web/`, the equivalent commands are in [`web/package.json`](./web/package.json).
 
 ## Deployment Notes
 
-- Cloudflare config lives in [`web/wrangler.toml`](./web/wrangler.toml)
+- Frontend Cloudflare config lives in [`web/wrangler.toml`](./web/wrangler.toml)
+- API Cloudflare config lives in [`api/wrangler.toml`](./api/wrangler.toml)
 - The Worker entrypoint is [`web/worker.js`](./web/worker.js)
-- `just deploy` builds first, then deploys
+- `just deploy` builds the Astro site, then deploys the frontend Worker
+- `just deploy-api` builds the Rust worker locally, then deploys the API Worker
 
 ## Verification
 

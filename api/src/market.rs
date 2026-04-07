@@ -1,0 +1,107 @@
+mod braiins;
+mod ocean;
+mod validation;
+
+use futures::join;
+use serde::Deserialize;
+use url::Url;
+use worker::Fetch;
+
+use crate::types::{MarketSnapshot, MarketSource};
+
+pub use ocean::{OceanFeeEstimate, OceanTiming, fetch_ocean_fee_estimate};
+
+pub struct MarketClient {
+    now: u32,
+}
+
+impl MarketClient {
+    pub fn new(now: u32) -> Self {
+        Self { now }
+    }
+
+    pub async fn fetch(
+        &self,
+        ocean_fee_estimate: Option<OceanFeeEstimate>,
+        cached_ocean_timing: Option<OceanTiming>,
+    ) -> Result<MarketSnapshot, String> {
+        let spot = braiins::fetch_spot_stats();
+        let orderbook = braiins::fetch_orderbook();
+        let difficulty = braiins::fetch_difficulty_stats();
+        let btc_price = braiins::fetch_btc_price();
+        let ocean_timing = ocean::fetch_or_reuse_timing(cached_ocean_timing);
+
+        let (spot, orderbook, difficulty, btc_price, ocean_timing) =
+            join!(spot, orderbook, difficulty, btc_price, ocean_timing);
+
+        let spot = spot?;
+        let orderbook = orderbook
+            .inspect_err(|e| worker::console_log!("Orderbook fetch failed: {e}"))
+            .ok();
+        let difficulty = difficulty?;
+        let btc_price = btc_price?;
+        let ocean_timing = ocean_timing
+            .inspect_err(|e| worker::console_log!("OCEAN timing fetch failed: {e}"))
+            .ok();
+
+        MarketSnapshot {
+            best_ask_sats_per_eh_day: spot.best_ask_sats_per_eh_day,
+            last_avg_sats_per_eh_day: spot.last_avg_sats_per_eh_day,
+            available_hashrate_ph: spot.available_hashrate_ph,
+            top_ask_hashrate_ph: orderbook
+                .as_ref()
+                .and_then(braiins::Orderbook::top_ask_hashrate_ph),
+            top_ask_sats_per_eh_day: orderbook
+                .as_ref()
+                .and_then(braiins::Orderbook::top_ask_sats_per_eh_day),
+            difficulty: difficulty.difficulty,
+            btc_usd: btc_price.price,
+            market_status: spot.status,
+            ocean_hashrate_eh: ocean_timing.as_ref().map(|timing| timing.hashrate_eh),
+            ocean_average_time_to_block_hours: ocean_timing
+                .as_ref()
+                .map(|timing| timing.average_time_to_block_hours),
+            ocean_average_block_tx_fees_btc: ocean_fee_estimate
+                .as_ref()
+                .map(|estimate| estimate.average_block_tx_fees_btc),
+            ocean_block_fee_sample_size: ocean_fee_estimate
+                .as_ref()
+                .map_or(0, |estimate| estimate.sample_size),
+            fetched_at: self.now,
+            sources: market_sources(),
+        }
+        .validate()
+    }
+}
+
+async fn fetch_json<T>(url: &str) -> Result<T, String>
+where
+    T: for<'de> Deserialize<'de>,
+{
+    let url = Url::parse(url).map_err(|error| format!("invalid upstream URL: {error}"))?;
+    let mut response = Fetch::Url(url)
+        .send()
+        .await
+        .map_err(|error| format!("upstream fetch failed: {error}"))?;
+
+    if response.status_code() != 200 {
+        return Err(format!("upstream returned HTTP {}", response.status_code()));
+    }
+
+    response
+        .json::<T>()
+        .await
+        .map_err(|error| format!("upstream JSON parse failed: {error}"))
+}
+
+fn market_sources() -> Vec<MarketSource> {
+    vec![
+        braiins::spot_stats_source(),
+        braiins::orderbook_source(),
+        braiins::difficulty_stats_source(),
+        braiins::btc_price_source(),
+        ocean::dashboard_source(),
+        ocean::blocks_found_source(),
+        ocean::mempool_block_summary_source(),
+    ]
+}

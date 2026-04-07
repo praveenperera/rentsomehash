@@ -58,12 +58,7 @@ impl MarketCache {
         if let Some(cached) = cached.as_ref()
             && self.is_fresh(cached)
         {
-            return Ok(MarketCacheResult {
-                market: cached.market.clone(),
-                stale: false,
-                cache_mode: CacheMode::KvFresh,
-                warnings: Vec::new(),
-            });
+            return Ok(MarketCacheResult::fresh(cached.market.clone()));
         }
 
         let ocean_fee_estimate = self.ocean_fee_estimate().await;
@@ -99,47 +94,14 @@ impl MarketCache {
             market: market.clone(),
         };
 
-        if let Some(kv) = self.kv.as_ref() {
-            let write_result = match kv.put(CACHE_KEY, &cached_market) {
-                Ok(builder) => builder
-                    .expiration_ttl(EXPIRATION_SECONDS)
-                    .execute()
-                    .await
-                    .map_err(|error| error.to_string()),
-                Err(error) => Err(error.to_string()),
-            };
+        let Some(write_result) = self.write_market(&cached_market).await else {
+            return Ok(MarketCacheResult::memoryless(market));
+        };
 
-            if let Err(error) = write_result {
-                return Ok(MarketCacheResult {
-                    market,
-                    stale: false,
-                    cache_mode: CacheMode::KvWriteFailed,
-                    warnings: vec![CalculatorWarning {
-                        code: WarningCode::CacheWriteFailed,
-                        message: format!(
-                            "Live market data was refreshed, but writing it to KV cache failed: {error}"
-                        ),
-                    }],
-                });
-            }
-
-            return Ok(MarketCacheResult {
-                market,
-                stale: false,
-                cache_mode: CacheMode::KvRefreshed,
-                warnings: Vec::new(),
-            });
+        match write_result {
+            Ok(()) => Ok(MarketCacheResult::refreshed(market)),
+            Err(error) => Ok(MarketCacheResult::write_failed(market, error)),
         }
-
-        Ok(MarketCacheResult {
-            market,
-            stale: false,
-            cache_mode: CacheMode::Memoryless,
-            warnings: vec![CalculatorWarning {
-                code: WarningCode::MemorylessCache,
-                message: "KV cache binding is unavailable, so live market data was fetched without persistent caching.".to_string(),
-            }],
-        })
     }
 
     fn return_stale(
@@ -151,17 +113,7 @@ impl MarketCache {
             return Err(error);
         };
 
-        Ok(MarketCacheResult {
-            market: cached.market,
-            stale: true,
-            cache_mode: CacheMode::KvStale,
-            warnings: vec![CalculatorWarning {
-                code: WarningCode::StaleMarketData,
-                message:
-                    "Live market fetch failed, so this estimate is using stale cached market data."
-                        .to_string(),
-            }],
-        })
+        Ok(MarketCacheResult::stale(cached.market))
     }
 
     async fn read(&self) -> Option<CachedMarketSnapshot> {
@@ -214,6 +166,22 @@ impl MarketCache {
         let _ = builder.execute().await;
     }
 
+    async fn write_market(
+        &self,
+        cached_market: &CachedMarketSnapshot,
+    ) -> Option<Result<(), String>> {
+        let kv = self.kv.as_ref()?;
+
+        Some(match kv.put(CACHE_KEY, cached_market) {
+            Ok(builder) => builder
+                .expiration_ttl(EXPIRATION_SECONDS)
+                .execute()
+                .await
+                .map_err(|error| error.to_string()),
+            Err(error) => Err(error.to_string()),
+        })
+    }
+
     fn is_fresh(&self, cached: &CachedMarketSnapshot) -> bool {
         self.now.saturating_sub(cached.market.fetched_at) < FRESH_SECONDS
     }
@@ -245,6 +213,66 @@ impl MarketCache {
     }
 }
 
+impl MarketCacheResult {
+    fn fresh(market: MarketSnapshot) -> Self {
+        Self {
+            market,
+            stale: false,
+            cache_mode: CacheMode::KvFresh,
+            warnings: Vec::new(),
+        }
+    }
+
+    fn refreshed(market: MarketSnapshot) -> Self {
+        Self {
+            market,
+            stale: false,
+            cache_mode: CacheMode::KvRefreshed,
+            warnings: Vec::new(),
+        }
+    }
+
+    fn write_failed(market: MarketSnapshot, error: String) -> Self {
+        Self {
+            market,
+            stale: false,
+            cache_mode: CacheMode::KvWriteFailed,
+            warnings: vec![CalculatorWarning {
+                code: WarningCode::CacheWriteFailed,
+                message: format!(
+                    "Live market data was refreshed, but writing it to KV cache failed: {error}"
+                ),
+            }],
+        }
+    }
+
+    fn memoryless(market: MarketSnapshot) -> Self {
+        Self {
+            market,
+            stale: false,
+            cache_mode: CacheMode::Memoryless,
+            warnings: vec![CalculatorWarning {
+                code: WarningCode::MemorylessCache,
+                message: "KV cache binding is unavailable, so live market data was fetched without persistent caching.".to_string(),
+            }],
+        }
+    }
+
+    fn stale(market: MarketSnapshot) -> Self {
+        Self {
+            market,
+            stale: true,
+            cache_mode: CacheMode::KvStale,
+            warnings: vec![CalculatorWarning {
+                code: WarningCode::StaleMarketData,
+                message:
+                    "Live market fetch failed, so this estimate is using stale cached market data."
+                        .to_string(),
+            }],
+        }
+    }
+}
+
 impl From<CachedMarketSnapshotValue> for CachedMarketSnapshot {
     fn from(value: CachedMarketSnapshotValue) -> Self {
         match value {
@@ -264,4 +292,53 @@ impl From<CachedMarketSnapshotValue> for CachedMarketSnapshot {
 
 fn market_has_ocean_timing(market: &MarketSnapshot) -> bool {
     market.ocean_hashrate_eh.is_some() && market.ocean_average_time_to_block_hours.is_some()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn market_snapshot() -> MarketSnapshot {
+        MarketSnapshot {
+            best_ask_sats_per_eh_day: 44_981_000.0,
+            last_avg_sats_per_eh_day: 47_995_796.0,
+            available_hashrate_ph: 1_000.0,
+            top_ask_hashrate_ph: Some(10.0),
+            top_ask_sats_per_eh_day: Some(44_981_000.0),
+            difficulty: 138_966_872_071_213.0,
+            btc_usd: 68_724.0,
+            market_status: "SPOT_INSTRUMENT_STATUS_ACTIVE".to_string(),
+            ocean_hashrate_eh: Some(12.94),
+            ocean_average_time_to_block_hours: Some(11.0),
+            ocean_average_block_tx_fees_btc: Some(0.05),
+            ocean_block_fee_sample_size: 12,
+            fetched_at: 1_776_724_200,
+            sources: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn cache_mode_helpers_preserve_result_flags() {
+        let market = market_snapshot();
+
+        let fresh = MarketCacheResult::fresh(market.clone());
+        let stale = MarketCacheResult::stale(market);
+
+        assert_eq!(fresh.cache_mode, CacheMode::KvFresh);
+        assert!(!fresh.stale);
+        assert!(fresh.warnings.is_empty());
+        assert_eq!(stale.cache_mode, CacheMode::KvStale);
+        assert!(stale.stale);
+        assert_eq!(stale.warnings[0].code, WarningCode::StaleMarketData);
+    }
+
+    #[test]
+    fn write_failure_helper_preserves_warning_message() {
+        let result = MarketCacheResult::write_failed(market_snapshot(), "boom".to_string());
+
+        assert_eq!(result.cache_mode, CacheMode::KvWriteFailed);
+        assert!(!result.stale);
+        assert_eq!(result.warnings[0].code, WarningCode::CacheWriteFailed);
+        assert!(result.warnings[0].message.contains("boom"));
+    }
 }

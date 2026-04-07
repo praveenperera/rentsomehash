@@ -1,19 +1,21 @@
 name = "rentsomehash"
-main = "./worker-rs/build/worker/shim.mjs"
+main = "./worker.js"
 compatibility_date = "2026-03-29"
-
-[build]
-command = "cargo install -q worker-build --version 0.7.5 && cd worker-rs && worker-build --release"
 
 [observability]
 enabled = true
 
-[[kv_namespaces]]
-binding = "HASHPOWER_CACHE"
-id = "6dffcd73f22841079c6891e955f67da0"
-preview_id = "6bc452952117433784545a2769c77267"
+[[services]]
+binding = "HASHPOWER_API"
+service = "rentsomehash-api"
+
+[[ratelimits]]
+name = "CALCULATOR_RATE_LIMITER"
+namespace_id = "687732001"
+simple = { limit = 15, period = 60 }
 
 [assets]
 directory = "./dist"
 binding = "ASSETS"
+not_found_handling = "404-page"
 run_worker_first = ["/api/*"]
