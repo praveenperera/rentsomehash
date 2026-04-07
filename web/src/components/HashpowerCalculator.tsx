@@ -43,7 +43,9 @@ const DEFAULT_BUDGET_USD = 1_000;
 const DEFAULT_DURATION_DAYS = 30;
 const DEFAULT_PRICE_SATS_PER_PH_DAY = 44_000;
 const MIN_DURATION_DAYS = 7;
-const MAX_DURATION_DAYS = 90;
+const MAX_DURATION_DAYS = 360;
+const MAX_BUDGET_USD = 100_000;
+const BRAIINS_PRICE_STEP = 10;
 const BLOCK_SUBSIDY_BTC = 3.125;
 const OCEAN_DATUM_POOL_FEE_RATE = 0.01;
 const HASHES_PER_EH = 1e18;
@@ -136,7 +138,6 @@ export function HashpowerCalculator() {
     : null;
   const isLoading = state.status === "loading";
   const priceSlider = priceSliderRange(displayedPrice);
-  const budgetSliderMax = Math.max(10_000, budgetUsd);
 
   return (
     <div className="space-y-4">
@@ -163,13 +164,14 @@ export function HashpowerCalculator() {
             </CardDescription>
           </CardHeader>
           <CalculatorControls
-            budgetSliderMax={budgetSliderMax}
             budgetUsd={budgetUsd}
             displayedPrice={displayedPrice}
             durationDays={durationDays}
             priceTouched={priceTouched}
             priceSlider={priceSlider}
-            onBudgetChange={setBudgetUsd}
+            onBudgetChange={(value) =>
+              setBudgetUsd(clamp(value, 100, MAX_BUDGET_USD))
+            }
             onDurationChange={(value) =>
               setDurationDays(
                 clamp(value, MIN_DURATION_DAYS, MAX_DURATION_DAYS),
@@ -285,7 +287,6 @@ function useMarketData(setDefaultPrice: (value: number) => void) {
 }
 
 function CalculatorControls({
-  budgetSliderMax,
   budgetUsd,
   displayedPrice,
   durationDays,
@@ -296,7 +297,6 @@ function CalculatorControls({
   onPriceChange,
   onResetPrice,
 }: {
-  budgetSliderMax: number;
   budgetUsd: number;
   displayedPrice: number;
   durationDays: number;
@@ -313,7 +313,7 @@ function CalculatorControls({
         label="Budget"
         value={budgetUsd}
         min={100}
-        max={budgetSliderMax}
+        max={MAX_BUDGET_USD}
         step={50}
         suffix="USD"
         prefix="$"
@@ -334,7 +334,7 @@ function CalculatorControls({
         modified={priceTouched}
         min={priceSlider.min}
         max={priceSlider.max}
-        step={10}
+        step={BRAIINS_PRICE_STEP}
         suffix="sats/PH/day"
         onChange={onPriceChange}
       />
@@ -1172,10 +1172,18 @@ function uniqueWarnings(warnings: CalculatorWarning[]) {
 }
 
 function priceSliderRange(price: number) {
-  return {
-    min: Math.max(1, Math.floor(price * 0.5)),
-    max: Math.max(1_000, Math.ceil(price * 1.5)),
-  };
+  const rawMin = price * 0.5;
+  const rawMax = price * 1.5;
+  const snappedMin = Math.max(
+    BRAIINS_PRICE_STEP,
+    Math.floor(rawMin / BRAIINS_PRICE_STEP) * BRAIINS_PRICE_STEP,
+  );
+  const snappedMax = Math.max(
+    1_000,
+    Math.ceil(rawMax / BRAIINS_PRICE_STEP) * BRAIINS_PRICE_STEP,
+  );
+
+  return { min: snappedMin, max: snappedMax };
 }
 
 function sliderValue(value: number | readonly number[], fallback: number) {
