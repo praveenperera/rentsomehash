@@ -8,6 +8,12 @@ import {
 } from "@phosphor-icons/react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -86,74 +92,102 @@ export function HashpowerCalculator() {
     : null;
   const priceSlider = priceSliderRange(displayedPrice);
   const budgetSliderMax = Math.max(10_000, budgetUsd);
-  const showSupplementaryCards = data !== null;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
-      <Card
-        className={cn(
-          "border-primary/30 bg-card/92",
-          showSupplementaryCards && "lg:row-span-2",
-        )}
-      >
-        <CardHeader className="space-y-2">
-          <CardTitle className="text-xl tracking-[-0.06em]">
-            Adjust the rental inputs
-          </CardTitle>
-          <CardDescription className="text-sm leading-7">
-            Hashpower price starts from the live Braiins best ask. If you edit
-            it, the calculator uses your custom sats/PH/day assumption. Results
-            are estimates based on current inputs, not a forecast. Longer
-            durations spread pool block variance across more expected blocks.
-          </CardDescription>
-        </CardHeader>
-        <CalculatorControls
-          budgetSliderMax={budgetSliderMax}
-          budgetUsd={budgetUsd}
-          displayedPrice={displayedPrice}
-          durationDays={durationDays}
-          priceTouched={priceTouched}
-          priceSlider={priceSlider}
-          onBudgetChange={setBudgetUsd}
-          onDurationChange={(value) =>
-            setDurationDays(clamp(value, MIN_DURATION_DAYS, MAX_DURATION_DAYS))
-          }
-          onPriceChange={(value) => {
-            setPriceTouched(true);
-            setPriceSatsPerPhDay(value);
-          }}
-          onResetPrice={() => {
-            setPriceTouched(false);
-            setPriceSatsPerPhDay(braiinsBestAskPrice);
-          }}
-        />
-      </Card>
+    <div className="space-y-4">
+      {state.status === "error" && (
+        <Alert variant="destructive">
+          <WarningIcon className="size-4" aria-hidden="true" />
+          <AlertTitle>Live calculator data unavailable</AlertTitle>
+          <AlertDescription>{state.error}</AlertDescription>
+        </Alert>
+      )}
 
-      <div className="space-y-4">
-        {state.status === "error" && (
-          <Alert variant="destructive">
-            <WarningIcon className="size-4" aria-hidden="true" />
-            <AlertTitle>Live calculator data unavailable</AlertTitle>
-            <AlertDescription>{state.error}</AlertDescription>
-          </Alert>
-        )}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="border-primary/30 bg-card/92 h-full">
+          <CardHeader className="space-y-2">
+            <CardTitle className="text-xl tracking-[-0.06em]">
+              Adjust the rental inputs
+            </CardTitle>
+            <CardDescription className="text-sm leading-7">
+              Hashpower price starts from the live Braiins best ask. If you edit
+              it, the calculator uses your custom sats/PH/day assumption.
+              Results are estimates based on current inputs, not a forecast.
+              Longer durations spread pool block variance across more expected
+              blocks.
+            </CardDescription>
+          </CardHeader>
+          <CalculatorControls
+            budgetSliderMax={budgetSliderMax}
+            budgetUsd={budgetUsd}
+            displayedPrice={displayedPrice}
+            durationDays={durationDays}
+            priceTouched={priceTouched}
+            priceSlider={priceSlider}
+            onBudgetChange={setBudgetUsd}
+            onDurationChange={(value) =>
+              setDurationDays(
+                clamp(value, MIN_DURATION_DAYS, MAX_DURATION_DAYS),
+              )
+            }
+            onPriceChange={(value) => {
+              setPriceTouched(true);
+              setPriceSatsPerPhDay(value);
+            }}
+            onResetPrice={() => {
+              setPriceTouched(false);
+              setPriceSatsPerPhDay(braiinsBestAskPrice);
+            }}
+          />
+        </Card>
 
         {data ? (
-          <ResultsGrid data={data} priceModified={priceTouched} />
+          <div className="grid gap-4 md:grid-cols-2">
+            <ResultsGrid data={data} priceModified={priceTouched} />
+          </div>
         ) : (
-          <LoadingGrid />
+          <Card className="bg-card/86 h-full">
+            <CardHeader className="space-y-3">
+              <Skeleton className="h-3 w-28" />
+              <Skeleton className="h-8 w-40" />
+              <Skeleton className="h-4 w-48" />
+            </CardHeader>
+          </Card>
         )}
       </div>
 
-      {data && (
-        <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr] lg:items-stretch">
+        {data ? (
           <OceanTimingCard data={data} />
-          <div className="space-y-4">
-            <VarianceMathCard data={data} />
-            <WarningsCard data={data} />
-          </div>
-        </div>
-      )}
+        ) : (
+          <Card className="bg-card/86 h-full">
+            <CardHeader className="space-y-3">
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {Array.from({ length: 6 }, (_, i) => (
+                  <div
+                    key={i}
+                    className="space-y-1 border border-border/70 bg-background/50 p-3"
+                  >
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {data && <WarningsCard data={data} />}
+      </div>
+
+      <div className="pt-2">
+        <CalculatorFaqCard />
+      </div>
     </div>
   );
 }
@@ -316,7 +350,7 @@ function NumberSlider({
           onChange={(event) =>
             onChange(Number.parseFloat(event.currentTarget.value || "0"))
           }
-          className="w-36 text-right font-mono"
+          className="w-36 pr-1.5 text-right font-mono [&::-webkit-inner-spin-button]:ml-2"
         />
       </div>
       <Slider
@@ -344,7 +378,7 @@ function ResultsGrid({
       : "Positive means the estimate returns more BTC than buying spot";
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <>
       <MetricCard
         eyebrow="Rented speed"
         title={`${formatNumber(data.results.hashratePh, 2)} PH/s`}
@@ -354,14 +388,24 @@ function ResultsGrid({
         eyebrow="Expected mined"
         title={`${formatBtc(data.results.expectedMinedBtc)} BTC`}
         description={
-          data.market.oceanAverageBlockTxFeesBtc === null
-            ? "Estimated after 1% OCEAN DATUM fee, subsidy-only"
-            : "Estimated with recent tx fees and 1% OCEAN DATUM fee"
-        }
-        detail={
-          <RewardBreakdown
-            averageTxFeesBtc={data.market.oceanAverageBlockTxFeesBtc}
-          />
+          <span className="inline-flex items-center gap-1.5">
+            {data.market.oceanAverageBlockTxFeesBtc === null
+              ? "Estimated after 1% OCEAN DATUM fee, subsidy-only"
+              : "Estimated with recent tx fees and 1% OCEAN DATUM fee"}
+            <Tooltip>
+              <TooltipTrigger
+                aria-label="Show reward breakdown"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <QuestionIcon className="size-4" aria-hidden="true" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <RewardBreakdownTooltip
+                  averageTxFeesBtc={data.market.oceanAverageBlockTxFeesBtc}
+                />
+              </TooltipContent>
+            </Tooltip>
+          </span>
         }
       />
       <MetricCard
@@ -389,7 +433,7 @@ function ResultsGrid({
         }
         description={deltaDescription}
       />
-    </div>
+    </>
   );
 }
 
@@ -402,7 +446,7 @@ function MetricCard({
 }: {
   eyebrow: string;
   title: React.ReactNode;
-  description: string;
+  description: React.ReactNode;
   modified?: boolean;
   detail?: React.ReactNode;
 }) {
@@ -426,25 +470,27 @@ function MetricCard({
   );
 }
 
-function RewardBreakdown({
+function RewardBreakdownTooltip({
   averageTxFeesBtc,
 }: {
   averageTxFeesBtc: number | null;
 }) {
   return (
-    <p className="font-mono text-[10px] leading-4 text-muted-foreground/70">
-      3.125 subsidy
-      {averageTxFeesBtc === null
-        ? " + unavailable tx fees"
-        : ` + ${formatBtc(averageTxFeesBtc)} avg tx fees`}
-      {" - 1% OCEAN fee"}
-    </p>
+    <div className="font-mono text-xs">
+      <div>3.125 subsidy</div>
+      {averageTxFeesBtc === null ? (
+        <div className="text-muted-foreground">+ unavailable tx fees</div>
+      ) : (
+        <div>+ {formatBtc(averageTxFeesBtc)} avg tx fees</div>
+      )}
+      <div>- 1% OCEAN fee</div>
+    </div>
   );
 }
 
 function OceanTimingCard({ data }: { data: HashpowerCalculatorResponse }) {
   return (
-    <Card className="bg-card/86">
+    <Card className="bg-card/86 h-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg tracking-[-0.06em]">
           <CalculatorIcon className="size-5 text-primary" aria-hidden="true" />
@@ -489,14 +535,15 @@ function OceanTimingCard({ data }: { data: HashpowerCalculatorResponse }) {
                 <Tooltip>
                   <TooltipTrigger
                     aria-label="Explain one fewer block impact"
-                    className="size-4 border border-border bg-background/70 text-muted-foreground hover:text-foreground"
+                    className="text-muted-foreground hover:text-foreground"
                   >
-                    <QuestionIcon className="size-3" aria-hidden="true" />
+                    <QuestionIcon className="size-4" aria-hidden="true" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    One fewer block impact is 1 divided by expected OCEAN
-                    blocks. If the window expects 60 pool blocks, missing one
-                    block is about 1.7% below that block count.
+                    This percentage shows how sensitive your estimate is to
+                    variance. Over 7 days, missing 1 block from 14 expected
+                    would cost you ~7%. Over 30 days, missing 1 from 60 expected
+                    is only ~1.7%. Longer rentals smooth out block variance.
                   </TooltipContent>
                 </Tooltip>
               </span>
@@ -529,37 +576,6 @@ function OceanTimingCard({ data }: { data: HashpowerCalculatorResponse }) {
   );
 }
 
-function VarianceMathCard({ data }: { data: HashpowerCalculatorResponse }) {
-  return (
-    <Card className="bg-card/86">
-      <CardHeader>
-        <CardTitle className="text-lg tracking-[-0.06em]">
-          Variance math
-        </CardTitle>
-        <CardDescription className="text-sm leading-7">
-          Pool-level block variance context, not exact OCEAN TIDES payout
-          accounting.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3 font-mono text-[11px] leading-5 text-muted-foreground">
-        <p>
-          expected OCEAN blocks = {formatNumber(data.inputs.durationDays, 0)}
-          {" days * 24 / "}
-          {data.market.oceanAverageTimeToBlockHours
-            ? `${formatNumber(data.market.oceanAverageTimeToBlockHours, 1)} hours`
-            : "average hours per OCEAN block"}
-        </p>
-        <p>
-          one fewer block impact = 1 /{" "}
-          {data.results.expectedOceanBlocks
-            ? formatNumber(data.results.expectedOceanBlocks, 2)
-            : "expected OCEAN blocks"}
-        </p>
-      </CardContent>
-    </Card>
-  );
-}
-
 function TimingItem({
   label,
   value,
@@ -579,7 +595,7 @@ function TimingItem({
 
 function WarningsCard({ data }: { data: HashpowerCalculatorResponse }) {
   return (
-    <Card className="bg-card/86">
+    <Card className="bg-card/86 h-full">
       <CardHeader>
         <CardTitle className="text-lg tracking-[-0.06em]">
           Model notes
@@ -603,38 +619,169 @@ function WarningsCard({ data }: { data: HashpowerCalculatorResponse }) {
   );
 }
 
-function LoadingGrid() {
+function CalculatorFaqCard() {
+  const items = [
+    {
+      question: "Is this a forecast?",
+      answer:
+        "No. It is an expected-value comparison using current inputs and current market data. Actual mining results can land above or below the estimate.",
+    },
+    {
+      question: "Why might I earn less than expected?",
+      answer:
+        "This is an estimate, not a promise. The numbers use recent OCEAN block fees minus the 1% DATUM fee, but the real world does not care about our math. Difficulty jumps, fee crashes, bid slippage, and mining variance can all swing your actual payout up or down. Shorter windows get hit harder by block variance.",
+    },
+    {
+      question: "What does one fewer block impact mean?",
+      answer:
+        "This percentage shows how sensitive your estimate is to variance. At current OCEAN hashrate, a 7-day rental expects ~15 blocks. Miss one and your payout drops ~6.5% below estimate. A 30-day rental expects ~65 blocks — miss one and you are only down ~1.5%. Longer rentals smooth out block variance.",
+    },
+    {
+      question: "Why is 30 days the default duration?",
+      answer:
+        "30 days hits a sweet spot — long enough for OCEAN to find ~65 blocks, which smooths out variance. Miss one block and you are only down ~1.5% vs ~6.5% over 7 days (~15 blocks). Shorter rentals mean each missed block stings more.",
+    },
+    {
+      question: "How are average transaction fees calculated?",
+      answer:
+        "We grab up to 12 recent OCEAN blocks and pull the fee data from mempool.space for each. Add up the fees per block, take the average, then add that to the 3.125 BTC subsidy. Then we knock off 1% for OCEAN's DATUM fee. No fee data available? We fall back to subsidy-only.",
+    },
+    {
+      question: "Why compare against buying spot BTC?",
+      answer:
+        "Buying spot is the clean baseline for the same budget. The calculator shows whether the current rental assumptions are expected to return more or less BTC than simply buying bitcoin outright.",
+    },
+  ];
+
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      {Array.from({ length: 4 }, (_, index) => (
-        <Card key={index} className="bg-card/86">
-          <CardHeader className="space-y-3">
-            <Skeleton className="h-3 w-28" />
-            <Skeleton className="h-8 w-40" />
-            <Skeleton className="h-4 w-48" />
-          </CardHeader>
-        </Card>
-      ))}
-    </div>
+    <Card className="bg-card/86">
+      <CardHeader>
+        <CardTitle className="text-lg tracking-[-0.06em]">FAQ</CardTitle>
+        <CardDescription className="text-sm leading-7">
+          Short answers to the common questions behind this calculator.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Accordion
+          className="border border-border/70 bg-background/40"
+          defaultValue={[items[0]?.question ?? ""]}
+        >
+          {items.map((item) => (
+            <AccordionItem key={item.question} value={item.question}>
+              <AccordionTrigger className="px-4 py-4 text-sm font-heading tracking-[-0.03em]">
+                {item.question}
+              </AccordionTrigger>
+              <AccordionContent className="px-4 text-sm leading-7 text-foreground/74">
+                {item.answer}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </CardContent>
+    </Card>
   );
 }
 
 async function loadMarketData(signal: AbortSignal) {
-  const response = await fetch("/api/hashpower-calculator", {
-    signal,
-  });
-  const body = (await response.json()) as
-    | HashpowerCalculatorResponse
-    | ApiErrorResponse;
+  try {
+    const response = await fetch("/api/hashpower-calculator", {
+      signal,
+    });
+    const body = (await response.json()) as
+      | HashpowerCalculatorResponse
+      | ApiErrorResponse;
 
-  if (!response.ok) {
-    throw new Error(
-      "error" in body ? body.error.message : "Calculator data unavailable",
-    );
+    if (!response.ok) {
+      throw new Error(
+        "error" in body ? body.error.message : "Calculator data unavailable",
+      );
+    }
+
+    return body as HashpowerCalculatorResponse;
+  } catch (error) {
+    if (!import.meta.env.DEV || signal.aborted) {
+      throw error;
+    }
+
+    // astro dev does not run the Cloudflare worker API, so use a stable snapshot locally
+    return DEV_MARKET_DATA;
   }
-
-  return body as HashpowerCalculatorResponse;
 }
+
+const DEV_MARKET_DATA: HashpowerCalculatorResponse = {
+  inputs: {
+    budgetUsd: DEFAULT_BUDGET_USD,
+    durationDays: DEFAULT_DURATION_DAYS,
+    priceSatsPerPhDay: 45_062,
+  },
+  market: {
+    bestAskSatsPerEhDay: 45_062_000,
+    lastAvgSatsPerEhDay: 45_062_000,
+    availableHashratePh: 12.4,
+    topAskHashratePh: 4.8,
+    topAskSatsPerEhDay: 45_062_000,
+    difficulty: 138_966_858_174_568.75,
+    btcUsd: 68_513,
+    marketStatus: "DEV_SNAPSHOT",
+    oceanHashrateEh: 13.18,
+    oceanAverageTimeToBlockHours: 11,
+    oceanAverageBlockTxFeesBtc: 0.02182927,
+    oceanBlockFeeSampleSize: 12,
+    fetchedAt: 1_743_990_000,
+    sources: [
+      {
+        label: "Braiins spot stats",
+        url: "https://hashpower.braiins.com/webapi/spot/stats",
+      },
+      {
+        label: "Braiins orderbook",
+        url: "https://hashpower.braiins.com/webapi/orderbook",
+      },
+      {
+        label: "Braiins difficulty stats",
+        url: "https://hashpower.braiins.com/webapi/difficulty-stats",
+      },
+      {
+        label: "Braiins BTC price",
+        url: "https://hashpower.braiins.com/webapi/btc-price",
+      },
+      {
+        label: "OCEAN dashboard",
+        url: "https://ocean.xyz/dashboard",
+      },
+      {
+        label: "OCEAN blocks found",
+        url: "https://ocean.xyz/data/json/blocksfound?range=1m",
+      },
+      {
+        label: "Mempool block summary",
+        url: "https://mempool.space/api/v1/block/:hash/summary",
+      },
+    ],
+  },
+  results: {
+    budgetBtc: 0.01459577,
+    buyBtc: 0.01459577,
+    hashratePh: 1.07968,
+    hashrateEh: 0.00107968,
+    expectedNetworkBlocks: 0.00468877,
+    expectedMinedBtc: 0.01460722,
+    deltaPct: 0.0798,
+    expectedOceanBlocks: 65.45,
+    oneOceanBlockShortfallPct: 1.52788,
+    probabilityAtLeastOneOceanBlock: 0.99999977,
+    probabilityAtLeastTwoOceanBlocks: 0.9999962,
+  },
+  warnings: [
+    {
+      code: "MEMORYLESS_CACHE",
+      message:
+        "Local Astro dev uses a bundled market snapshot because the Cloudflare worker API is not running",
+    },
+  ],
+  stale: false,
+  cacheMode: "MEMORYLESS",
+};
 
 function calculateBrowserEstimate(
   marketData: HashpowerCalculatorResponse,
