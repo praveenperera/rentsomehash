@@ -665,7 +665,7 @@ function CalculatorFaqCard() {
     {
       question: "Why might I earn less than expected?",
       answer:
-        "This is an estimate, not a promise. The numbers use recent OCEAN block fees minus the 1% DATUM fee, but the real world does not care about our math. Difficulty jumps, fee crashes, bid slippage, and mining variance can all swing your actual payout up or down. Shorter windows get hit harder by block variance.",
+        "This is an estimate, not a promise. The numbers use recent OCEAN block fees minus the 1% DATUM fee, but the real world does not care about our math. Difficulty jumps, fee crashes, bid slippage, and mining variance can all swing your actual payout up or down. Hash rental prices will also shift during that period. Shorter windows get hit harder by block variance.",
     },
     {
       question: "What does one fewer block impact mean?",
