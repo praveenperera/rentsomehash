@@ -7,7 +7,6 @@ import {
 } from "@phosphor-icons/react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -84,12 +83,6 @@ export function HashpowerCalculator() {
       <div className="grid gap-4 lg:grid-cols-[0.78fr_1.22fr]">
         <Card className="border-primary/30 bg-card/92">
           <CardHeader className="space-y-2">
-            <Badge
-              variant="outline"
-              className="w-fit border-primary/25 bg-primary/10 text-primary"
-            >
-              7-day default
-            </Badge>
             <CardTitle className="text-xl tracking-[-0.06em]">
               Adjust the rental inputs
             </CardTitle>
