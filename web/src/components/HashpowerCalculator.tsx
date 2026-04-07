@@ -121,7 +121,11 @@ export function HashpowerCalculator() {
             </Alert>
           )}
 
-          {data ? <ResultsGrid data={data} /> : <LoadingGrid />}
+          {data ? (
+            <ResultsGrid data={data} priceModified={priceTouched} />
+          ) : (
+            <LoadingGrid />
+          )}
         </div>
       </div>
 
@@ -307,7 +311,13 @@ function NumberSlider({
   );
 }
 
-function ResultsGrid({ data }: { data: HashpowerCalculatorResponse }) {
+function ResultsGrid({
+  data,
+  priceModified,
+}: {
+  data: HashpowerCalculatorResponse;
+  priceModified: boolean;
+}) {
   const deltaPositive = data.results.deltaPct >= 0;
   const deltaDescription =
     data.results.deltaPct < 0
@@ -333,6 +343,7 @@ function ResultsGrid({ data }: { data: HashpowerCalculatorResponse }) {
       />
       <MetricCard
         eyebrow="Expected difference"
+        modified={priceModified}
         title={
           <span
             className={cn(
@@ -358,13 +369,21 @@ function MetricCard({
   eyebrow,
   title,
   description,
+  modified = false,
 }: {
   eyebrow: string;
   title: React.ReactNode;
   description: string;
+  modified?: boolean;
 }) {
   return (
-    <Card className="bg-card/86">
+    <Card
+      className={cn(
+        "bg-card/86 transition-colors",
+        modified &&
+          "border-primary/50 bg-primary/10 shadow-[0_0_0_1px_hsl(var(--primary)/0.12)]",
+      )}
+    >
       <CardHeader className="space-y-2">
         <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
           {eyebrow}
