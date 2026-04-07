@@ -1,8 +1,11 @@
 ---
+import { ArrowRightIcon } from "@phosphor-icons/react";
+
 import Footer from "@/components/Footer.astro";
 import { HashpowerCalculator } from "@/components/HashpowerCalculator";
 import Header from "@/components/Header.astro";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { getGuides } from "@/lib/content";
 import SiteLayout from "@/layouts/SiteLayout.astro";
 
@@ -41,6 +44,26 @@ const guides = await getGuides();
 
     <section class="mx-auto max-w-7xl px-6 py-14 lg:px-8">
       <HashpowerCalculator client:load />
+    </section>
+
+    <section class="border-t border-border/70">
+      <div class="mx-auto max-w-7xl px-6 py-16 lg:px-8">
+        <div class="flex flex-wrap items-center justify-between gap-6">
+          <div class="space-y-3">
+            <h2 class="text-2xl font-heading tracking-[-0.06em]">
+              Ready to set up?
+            </h2>
+            <p class="max-w-2xl text-base leading-8 text-foreground/74">
+              Follow the step-by-step guides to get a DATUM node running and point Braiins
+              hashpower at it.
+            </p>
+          </div>
+          <a href="/#workflow" class={buttonVariants({ size: "lg" })}>
+            View the guides
+            <ArrowRightIcon className="size-4" aria-hidden="true" />
+          </a>
+        </div>
+      </div>
     </section>
   </main>
 
