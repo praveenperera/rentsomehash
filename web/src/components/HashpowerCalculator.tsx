@@ -20,13 +20,28 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
 import type { ApiErrorResponse } from "@/lib/generated/hashpower-calculator/ApiErrorResponse";
+import type { CalculatorInputs } from "@/lib/generated/hashpower-calculator/CalculatorInputs";
+import type { CalculatorResults } from "@/lib/generated/hashpower-calculator/CalculatorResults";
+import type { CalculatorWarning } from "@/lib/generated/hashpower-calculator/CalculatorWarning";
 import type { HashpowerCalculatorResponse } from "@/lib/generated/hashpower-calculator/HashpowerCalculatorResponse";
+import type { MarketSnapshot } from "@/lib/generated/hashpower-calculator/MarketSnapshot";
+import type { WarningCode } from "@/lib/generated/hashpower-calculator/WarningCode";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_BUDGET_USD = 1_000;
 const DEFAULT_DURATION_DAYS = 7;
 const DEFAULT_PRICE_SATS_PER_PH_DAY = 44_000;
-const DEBOUNCE_MS = 250;
+const BLOCK_SUBSIDY_BTC = 3.125;
+const HASHES_PER_EH = 1e18;
+const MAX_U32_TARGET = 4_294_967_296;
+const SECONDS_PER_DAY = 86_400;
+const LOCAL_WARNING_CODES = new Set<WarningCode>([
+  "EXPECTED_VALUE_ONLY",
+  "SIMPLIFIED_MODEL",
+  "LIQUIDITY",
+  "OCEAN_TIMING_UNAVAILABLE",
+  "SHORT_OCEAN_WINDOW",
+]);
 
 type LoadState =
   | { status: "loading"; data: HashpowerCalculatorResponse | null; error: null }
@@ -37,12 +52,6 @@ type LoadState =
       error: string;
     };
 
-type CalculatorRequest = {
-  budgetUsd: number;
-  durationDays: number;
-  priceSatsPerPhDay: number | null;
-};
-
 export function HashpowerCalculator() {
   const [budgetUsd, setBudgetUsd] = React.useState(DEFAULT_BUDGET_USD);
   const [durationDays, setDurationDays] = React.useState(DEFAULT_DURATION_DAYS);
@@ -50,22 +59,23 @@ export function HashpowerCalculator() {
     number | null
   >(null);
   const [priceTouched, setPriceTouched] = React.useState(false);
-  const state = useCalculatorData({
-    budgetUsd,
-    durationDays,
-    priceSatsPerPhDay: priceTouched ? priceSatsPerPhDay : null,
-    priceTouched,
-    setDefaultPrice: setPriceSatsPerPhDay,
-  });
+  const state = useMarketData(setPriceSatsPerPhDay);
 
-  const data = state.data;
+  const marketData = state.data;
   const braiinsBestAskPrice =
-    data?.market.bestAskSatsPerEhDay !== undefined
-      ? data.market.bestAskSatsPerEhDay / 1_000
-      : (data?.inputs.priceSatsPerPhDay ?? DEFAULT_PRICE_SATS_PER_PH_DAY);
+    marketData?.market.bestAskSatsPerEhDay !== undefined
+      ? marketData.market.bestAskSatsPerEhDay / 1_000
+      : (marketData?.inputs.priceSatsPerPhDay ?? DEFAULT_PRICE_SATS_PER_PH_DAY);
   const displayedPrice = priceTouched
     ? (priceSatsPerPhDay ?? braiinsBestAskPrice)
     : braiinsBestAskPrice;
+  const data = marketData
+    ? calculateBrowserEstimate(marketData, {
+        budgetUsd,
+        durationDays,
+        priceSatsPerPhDay: displayedPrice,
+      })
+    : null;
   const priceSlider = priceSliderRange(displayedPrice);
   const budgetSliderMax = Math.max(10_000, budgetUsd);
 
@@ -132,16 +142,7 @@ export function HashpowerCalculator() {
   );
 }
 
-function useCalculatorData({
-  budgetUsd,
-  durationDays,
-  priceSatsPerPhDay,
-  priceTouched,
-  setDefaultPrice,
-}: CalculatorRequest & {
-  priceTouched: boolean;
-  setDefaultPrice: (value: number) => void;
-}) {
+function useMarketData(setDefaultPrice: (value: number) => void) {
   const [state, setState] = React.useState<LoadState>({
     status: "loading",
     data: null,
@@ -150,46 +151,30 @@ function useCalculatorData({
 
   React.useEffect(() => {
     const controller = new AbortController();
-    const timeout = window.setTimeout(() => {
-      void loadCalculatorData({
-        budgetUsd,
-        durationDays,
-        priceSatsPerPhDay,
-        signal: controller.signal,
+    void loadMarketData(controller.signal)
+      .then((data) => {
+        setState({ status: "ready", data, error: null });
+        setDefaultPrice(data.inputs.priceSatsPerPhDay);
       })
-        .then((data) => {
-          setState({ status: "ready", data, error: null });
-          if (!priceTouched) {
-            setDefaultPrice(data.inputs.priceSatsPerPhDay);
-          }
-        })
-        .catch((error: unknown) => {
-          if (controller.signal.aborted) {
-            return;
-          }
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) {
+          return;
+        }
 
-          setState((current) => ({
-            status: "error",
-            data: current.data,
-            error:
-              error instanceof Error
-                ? error.message
-                : "Calculator data unavailable",
-          }));
-        });
-    }, DEBOUNCE_MS);
+        setState((current) => ({
+          status: "error",
+          data: current.data,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Calculator data unavailable",
+        }));
+      });
 
     return () => {
       controller.abort();
-      window.clearTimeout(timeout);
     };
-  }, [
-    budgetUsd,
-    durationDays,
-    priceSatsPerPhDay,
-    priceTouched,
-    setDefaultPrice,
-  ]);
+  }, [setDefaultPrice]);
 
   return state;
 }
@@ -241,6 +226,7 @@ function CalculatorControls({
       <NumberSlider
         label="Braiins price"
         value={displayedPrice}
+        modified={priceTouched}
         min={priceSlider.min}
         max={priceSlider.max}
         step={10}
@@ -274,6 +260,7 @@ function NumberSlider({
   step,
   suffix,
   prefix = "",
+  modified = false,
   onChange,
 }: {
   label: string;
@@ -283,10 +270,17 @@ function NumberSlider({
   step: number;
   suffix: string;
   prefix?: string;
+  modified?: boolean;
   onChange: (value: number) => void;
 }) {
   return (
-    <label className="block space-y-3">
+    <label
+      className={cn(
+        "-m-3 block space-y-3 border border-transparent p-3 transition-colors",
+        modified &&
+          "border-primary/50 bg-primary/10 shadow-[0_0_0_1px_hsl(var(--primary)/0.12)]",
+      )}
+    >
       <div className="flex items-end justify-between gap-3">
         <div className="space-y-1">
           <span className="block text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
@@ -322,6 +316,10 @@ function NumberSlider({
 
 function ResultsGrid({ data }: { data: HashpowerCalculatorResponse }) {
   const deltaPositive = data.results.deltaPct >= 0;
+  const deltaDescription =
+    data.results.deltaPct < 0
+      ? "Negative means the estimate returns less BTC than buying spot"
+      : "Positive means the estimate returns more BTC than buying spot";
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -357,7 +355,7 @@ function ResultsGrid({ data }: { data: HashpowerCalculatorResponse }) {
             {formatSignedPercent(data.results.deltaPct)}
           </span>
         }
-        description="Positive means the estimate returns more BTC than buying spot"
+        description={deltaDescription}
       />
     </div>
   );
@@ -491,27 +489,8 @@ function LoadingGrid() {
   );
 }
 
-async function loadCalculatorData({
-  budgetUsd,
-  durationDays,
-  priceSatsPerPhDay,
-  signal,
-}: {
-  budgetUsd: number;
-  durationDays: number;
-  priceSatsPerPhDay: number | null;
-  signal: AbortSignal;
-}) {
-  const params = new URLSearchParams({
-    budget_usd: String(budgetUsd),
-    duration_days: String(durationDays),
-  });
-
-  if (priceSatsPerPhDay !== null) {
-    params.set("price_sats_per_ph_day", String(priceSatsPerPhDay));
-  }
-
-  const response = await fetch(`/api/hashpower-calculator?${params}`, {
+async function loadMarketData(signal: AbortSignal) {
+  const response = await fetch("/api/hashpower-calculator", {
     signal,
   });
   const body = (await response.json()) as
@@ -525,6 +504,145 @@ async function loadCalculatorData({
   }
 
   return body as HashpowerCalculatorResponse;
+}
+
+function calculateBrowserEstimate(
+  marketData: HashpowerCalculatorResponse,
+  inputs: CalculatorInputs,
+): HashpowerCalculatorResponse {
+  const results = calculateResults(marketData.market, inputs);
+  const warnings = uniqueWarnings([
+    ...localWarnings(marketData.market, inputs, results),
+    ...marketData.warnings.filter(
+      (warning) => !LOCAL_WARNING_CODES.has(warning.code),
+    ),
+  ]);
+
+  return {
+    ...marketData,
+    inputs,
+    results,
+    warnings,
+  };
+}
+
+function calculateResults(
+  market: MarketSnapshot,
+  inputs: CalculatorInputs,
+): CalculatorResults {
+  const budgetBtc = inputs.budgetUsd / market.btcUsd;
+  const buyBtc = budgetBtc;
+  const priceBtcPerEhDay = (inputs.priceSatsPerPhDay * 1_000) / 100_000_000;
+  const hashrateEh = budgetBtc / (priceBtcPerEhDay * inputs.durationDays);
+  const hashratePh = hashrateEh * 1_000;
+  const expectedNetworkBlocks =
+    (hashrateEh * HASHES_PER_EH * inputs.durationDays * SECONDS_PER_DAY) /
+    (market.difficulty * MAX_U32_TARGET);
+  const expectedMinedBtc = expectedNetworkBlocks * BLOCK_SUBSIDY_BTC;
+  const deltaPct = (expectedMinedBtc / buyBtc - 1) * 100;
+  const expectedOceanBlocks = market.oceanAverageTimeToBlockHours
+    ? (inputs.durationDays * 24) / market.oceanAverageTimeToBlockHours
+    : null;
+
+  return {
+    budgetBtc,
+    buyBtc,
+    hashratePh,
+    hashrateEh,
+    expectedNetworkBlocks,
+    expectedMinedBtc,
+    deltaPct,
+    expectedOceanBlocks,
+    probabilityAtLeastOneOceanBlock:
+      expectedOceanBlocks === null
+        ? null
+        : probabilityAtLeastOne(expectedOceanBlocks),
+    probabilityAtLeastTwoOceanBlocks:
+      expectedOceanBlocks === null
+        ? null
+        : probabilityAtLeastTwo(expectedOceanBlocks),
+  };
+}
+
+function localWarnings(
+  market: MarketSnapshot,
+  inputs: CalculatorInputs,
+  results: CalculatorResults,
+): CalculatorWarning[] {
+  const warnings: CalculatorWarning[] = [
+    {
+      code: "EXPECTED_VALUE_ONLY",
+      message:
+        "This is expected value, not a forecast. Actual mining results can vary heavily.",
+    },
+    {
+      code: "SIMPLIFIED_MODEL",
+      message:
+        "This estimate ignores transaction fees, future difficulty changes, bid slippage, OCEAN TIDES/share-log edge cases, and mining variance.",
+    },
+  ];
+
+  if (exceedsTopAskLiquidity(market, inputs, results)) {
+    warnings.push({
+      code: "LIQUIDITY",
+      message:
+        "The requested hashrate exceeds top ask liquidity at the best-ask price, so the flat-price estimate may be too optimistic.",
+    });
+  }
+
+  if (results.expectedOceanBlocks === null) {
+    warnings.push({
+      code: "OCEAN_TIMING_UNAVAILABLE",
+      message:
+        "OCEAN payout timing data is unavailable, so only the core expected-value estimate is shown.",
+    });
+  }
+
+  if (results.expectedOceanBlocks !== null && results.expectedOceanBlocks < 2) {
+    warnings.push({
+      code: "SHORT_OCEAN_WINDOW",
+      message:
+        "The selected window has fewer than two expected OCEAN pool blocks at the current pool hashrate.",
+    });
+  }
+
+  return warnings;
+}
+
+function exceedsTopAskLiquidity(
+  market: MarketSnapshot,
+  inputs: CalculatorInputs,
+  results: CalculatorResults,
+) {
+  if (market.topAskHashratePh === null) {
+    return false;
+  }
+
+  const defaultPrice = market.bestAskSatsPerEhDay / 1_000;
+  return (
+    results.hashratePh > market.topAskHashratePh &&
+    Math.abs(inputs.priceSatsPerPhDay - defaultPrice) < 0.000_001
+  );
+}
+
+function probabilityAtLeastOne(lambda: number) {
+  return 1 - Math.exp(-lambda);
+}
+
+function probabilityAtLeastTwo(lambda: number) {
+  return 1 - Math.exp(-lambda) * (1 + lambda);
+}
+
+function uniqueWarnings(warnings: CalculatorWarning[]) {
+  const seen = new Set<WarningCode>();
+  return warnings.filter((warning) => {
+    if (seen.has(warning.code)) {
+      return false;
+    }
+
+    seen.add(warning.code);
+    return true;
+  });
 }
 
 function priceSliderRange(price: number) {
