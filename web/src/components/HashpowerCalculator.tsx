@@ -85,7 +85,7 @@ export function HashpowerCalculator() {
             </CardTitle>
             <CardDescription className="text-sm leading-7">
               Hashpower price starts from the live Braiins best ask. If you edit
-              it, the Worker uses your custom sats/PH/day assumption.
+              it, the calculator uses your custom sats/PH/day assumption.
             </CardDescription>
           </CardHeader>
           <CalculatorControls
@@ -249,7 +249,7 @@ function CalculatorControls({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs leading-6 text-muted-foreground">
           Price defaults to the current Braiins best ask. The spot comparison
-          uses live BTC/USD from the same Worker response.
+          uses the current BTC/USD price.
         </p>
         <Button
           type="button"
