@@ -1,58 +1,158 @@
 use crate::types::MarketSnapshot;
 
-pub(super) fn validate_market_snapshot(market: MarketSnapshot) -> Result<MarketSnapshot, String> {
-    validate_positive_metric("best_ask_sats_per_eh_day", market.best_ask_sats_per_eh_day)?;
-    validate_positive_metric("last_avg_sats_per_eh_day", market.last_avg_sats_per_eh_day)?;
-    validate_non_negative_metric("available_hashrate_ph", market.available_hashrate_ph)?;
-    validate_optional_non_negative_metric("top_ask_hashrate_ph", market.top_ask_hashrate_ph)?;
-    validate_optional_positive_metric("top_ask_sats_per_eh_day", market.top_ask_sats_per_eh_day)?;
-    validate_positive_metric("difficulty", market.difficulty)?;
-    validate_positive_metric("btc_usd", market.btc_usd)?;
-    validate_optional_positive_metric("ocean_hashrate_eh", market.ocean_hashrate_eh)?;
-    validate_optional_positive_metric(
-        "ocean_average_time_to_block_hours",
-        market.ocean_average_time_to_block_hours,
-    )?;
-    validate_optional_non_negative_metric(
-        "ocean_average_block_tx_fees_btc",
-        market.ocean_average_block_tx_fees_btc,
-    )?;
+pub(super) struct MarketSnapshotValidator(MarketSnapshot);
 
-    Ok(market)
-}
+impl MarketSnapshotValidator {
+    pub(super) fn validate(self) -> Result<MarketSnapshot, String> {
+        self.validate_metric(
+            MarketMetric::BestAskSatsPerEhDay,
+            self.0.best_ask_sats_per_eh_day,
+            MetricBound::Positive,
+        )?;
 
-fn validate_positive_metric(name: &str, value: f64) -> Result<(), String> {
-    if value.is_finite() && value > 0.0 {
-        return Ok(());
+        self.validate_metric(
+            MarketMetric::LastAvgSatsPerEhDay,
+            self.0.last_avg_sats_per_eh_day,
+            MetricBound::Positive,
+        )?;
+
+        self.validate_metric(
+            MarketMetric::AvailableHashratePh,
+            self.0.available_hashrate_ph,
+            MetricBound::NonNegative,
+        )?;
+
+        self.validate_optional_metric(
+            MarketMetric::TopAskHashratePh,
+            self.0.top_ask_hashrate_ph,
+            MetricBound::NonNegative,
+        )?;
+
+        self.validate_optional_metric(
+            MarketMetric::TopAskSatsPerEhDay,
+            self.0.top_ask_sats_per_eh_day,
+            MetricBound::Positive,
+        )?;
+
+        self.validate_metric(
+            MarketMetric::Difficulty,
+            self.0.difficulty,
+            MetricBound::Positive,
+        )?;
+
+        self.validate_metric(MarketMetric::BtcUsd, self.0.btc_usd, MetricBound::Positive)?;
+
+        self.validate_optional_metric(
+            MarketMetric::OceanHashrateEh,
+            self.0.ocean_hashrate_eh,
+            MetricBound::Positive,
+        )?;
+
+        self.validate_optional_metric(
+            MarketMetric::OceanAverageTimeToBlockHours,
+            self.0.ocean_average_time_to_block_hours,
+            MetricBound::Positive,
+        )?;
+
+        self.validate_optional_metric(
+            MarketMetric::OceanAverageBlockTxFeesBtc,
+            self.0.ocean_average_block_tx_fees_btc,
+            MetricBound::NonNegative,
+        )?;
+
+        Ok(self.0)
     }
 
-    Err(format!("{name} must be finite and greater than zero"))
-}
+    fn validate_optional_metric(
+        &self,
+        metric: MarketMetric,
+        value: Option<f64>,
+        bound: MetricBound,
+    ) -> Result<(), String> {
+        let Some(value) = value else {
+            return Ok(());
+        };
 
-fn validate_optional_positive_metric(name: &str, value: Option<f64>) -> Result<(), String> {
-    let Some(value) = value else {
-        return Ok(());
-    };
-
-    validate_positive_metric(name, value)
-}
-
-fn validate_non_negative_metric(name: &str, value: f64) -> Result<(), String> {
-    if value.is_finite() && value >= 0.0 {
-        return Ok(());
+        self.validate_metric(metric, value, bound)
     }
 
-    Err(format!(
-        "{name} must be finite and greater than or equal to zero"
-    ))
+    fn validate_metric(
+        &self,
+        metric: MarketMetric,
+        value: f64,
+        bound: MetricBound,
+    ) -> Result<(), String> {
+        if bound.accepts(value) {
+            return Ok(());
+        }
+
+        Err(format!("{} {}", metric.name(), bound.error_suffix()))
+    }
 }
 
-fn validate_optional_non_negative_metric(name: &str, value: Option<f64>) -> Result<(), String> {
-    let Some(value) = value else {
-        return Ok(());
-    };
+#[derive(Clone, Copy)]
+enum MarketMetric {
+    BestAskSatsPerEhDay,
+    LastAvgSatsPerEhDay,
+    AvailableHashratePh,
+    TopAskHashratePh,
+    TopAskSatsPerEhDay,
+    Difficulty,
+    BtcUsd,
+    OceanHashrateEh,
+    OceanAverageTimeToBlockHours,
+    OceanAverageBlockTxFeesBtc,
+}
 
-    validate_non_negative_metric(name, value)
+impl MarketMetric {
+    fn name(self) -> &'static str {
+        match self {
+            Self::BestAskSatsPerEhDay => "best_ask_sats_per_eh_day",
+            Self::LastAvgSatsPerEhDay => "last_avg_sats_per_eh_day",
+            Self::AvailableHashratePh => "available_hashrate_ph",
+            Self::TopAskHashratePh => "top_ask_hashrate_ph",
+            Self::TopAskSatsPerEhDay => "top_ask_sats_per_eh_day",
+            Self::Difficulty => "difficulty",
+            Self::BtcUsd => "btc_usd",
+            Self::OceanHashrateEh => "ocean_hashrate_eh",
+            Self::OceanAverageTimeToBlockHours => "ocean_average_time_to_block_hours",
+            Self::OceanAverageBlockTxFeesBtc => "ocean_average_block_tx_fees_btc",
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+enum MetricBound {
+    Positive,
+    NonNegative,
+}
+
+impl MetricBound {
+    fn accepts(self, value: f64) -> bool {
+        match self {
+            Self::Positive => value.is_finite() && value > 0.0,
+            Self::NonNegative => value.is_finite() && value >= 0.0,
+        }
+    }
+
+    fn error_suffix(self) -> &'static str {
+        match self {
+            Self::Positive => "must be finite and greater than zero",
+            Self::NonNegative => "must be finite and greater than or equal to zero",
+        }
+    }
+}
+
+impl From<MarketSnapshot> for MarketSnapshotValidator {
+    fn from(market: MarketSnapshot) -> Self {
+        Self(market)
+    }
+}
+
+impl MarketSnapshot {
+    pub(super) fn validate(self) -> Result<MarketSnapshot, String> {
+        MarketSnapshotValidator::from(self).validate()
+    }
 }
 
 #[cfg(test)]
@@ -86,7 +186,7 @@ mod tests {
             ..market_snapshot()
         };
 
-        assert!(validate_market_snapshot(market).is_ok());
+        assert!(market.validate().is_ok());
     }
 
     #[test]
@@ -96,7 +196,9 @@ mod tests {
             ..market_snapshot()
         };
 
-        let error = validate_market_snapshot(market).expect_err("expected invalid market snapshot");
+        let error = market
+            .validate()
+            .expect_err("expected invalid market snapshot");
         assert!(error.contains("btc_usd"));
     }
 }
