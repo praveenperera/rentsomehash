@@ -46,6 +46,11 @@ pub async fn fetch_ocean_fee_estimate(now: u32) -> Result<OceanFeeEstimate, Stri
         .map(|block| fetch_mempool_block_fees_btc(block.block_hash));
     let fees = join_all(fee_requests).await;
     let fees: Vec<f64> = fees.into_iter().filter_map(Result::ok).collect();
+
+    let min_samples = (BLOCK_FEE_SAMPLE_SIZE / 2).max(3);
+    if fees.len() < min_samples {
+        return Err("recent OCEAN block fee estimate unavailable".to_string());
+    }
     let Some(average_block_tx_fees_btc) = average_block_fees_btc(&fees) else {
         return Err("recent OCEAN block fee estimate unavailable".to_string());
     };

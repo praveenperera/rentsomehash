@@ -5,6 +5,8 @@ mod market;
 mod query;
 mod types;
 
+use std::collections::HashSet;
+
 use cache::MarketCache;
 use calculator::HashpowerCalculator;
 use http::{error_response, json_error, json_response};
@@ -66,20 +68,11 @@ async fn hashpower_calculator(request: Request, env: Env) -> Result<Response> {
 }
 
 fn unique_warnings(warnings: Vec<CalculatorWarning>) -> Vec<CalculatorWarning> {
-    let mut unique = Vec::new();
-
-    for warning in warnings {
-        if unique
-            .iter()
-            .any(|seen: &CalculatorWarning| seen.code == warning.code)
-        {
-            continue;
-        }
-
-        unique.push(warning);
-    }
-
-    unique
+    let mut seen = HashSet::new();
+    warnings
+        .into_iter()
+        .filter(|w| seen.insert(w.code.clone()))
+        .collect()
 }
 
 fn now() -> u32 {

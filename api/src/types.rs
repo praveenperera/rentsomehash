@@ -75,7 +75,7 @@ pub struct CalculatorWarning {
     pub message: String,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize, TS)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize, TS)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[ts(export, rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum WarningCode {
@@ -122,6 +122,7 @@ pub struct ApiError {
 pub enum ApiErrorCode {
     InvalidInput,
     MarketDataUnavailable,
+    RateLimited,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize, TS)]
@@ -154,6 +155,10 @@ mod tests {
         assert_eq!(
             serde_json::to_value(ApiErrorCode::MarketDataUnavailable).unwrap(),
             serde_json::json!("MARKET_DATA_UNAVAILABLE")
+        );
+        assert_eq!(
+            serde_json::to_value(ApiErrorCode::RateLimited).unwrap(),
+            serde_json::json!("RATE_LIMITED")
         );
     }
 

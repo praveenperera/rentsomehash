@@ -35,10 +35,14 @@ impl MarketClient {
             join!(spot, orderbook, difficulty, btc_price, ocean_timing);
 
         let spot = spot?;
-        let orderbook = orderbook.ok();
+        let orderbook = orderbook
+            .inspect_err(|e| worker::console_log!("Orderbook fetch failed: {e}"))
+            .ok();
         let difficulty = difficulty?;
         let btc_price = btc_price?;
-        let ocean_timing = ocean_timing.ok();
+        let ocean_timing = ocean_timing
+            .inspect_err(|e| worker::console_log!("OCEAN timing fetch failed: {e}"))
+            .ok();
 
         MarketSnapshot {
             best_ask_sats_per_eh_day: spot.best_ask_sats_per_eh_day,

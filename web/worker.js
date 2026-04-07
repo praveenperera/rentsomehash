@@ -17,10 +17,10 @@ export default {
 };
 
 async function proxyCalculator(request, env, path) {
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  const firstForwardedIp = forwardedFor?.split(",")[0].trim() ?? null;
   const clientIp =
-    request.headers.get("cf-connecting-ip") ??
-    request.headers.get("x-forwarded-for") ??
-    "unknown";
+    request.headers.get("cf-connecting-ip") ?? firstForwardedIp ?? "unknown";
   const { success } = await env.CALCULATOR_RATE_LIMITER.limit({
     key: `${path}:${clientIp}`,
   });

@@ -201,4 +201,34 @@ mod tests {
             .expect_err("expected invalid market snapshot");
         assert!(error.contains("btc_usd"));
     }
+
+    #[test]
+    fn rejects_nan_values() {
+        let market = MarketSnapshot {
+            btc_usd: f64::NAN,
+            ..market_snapshot()
+        };
+
+        assert!(market.validate().is_err());
+    }
+
+    #[test]
+    fn rejects_infinite_values() {
+        let market = MarketSnapshot {
+            difficulty: f64::INFINITY,
+            ..market_snapshot()
+        };
+
+        assert!(market.validate().is_err());
+    }
+
+    #[test]
+    fn rejects_negative_required_positive_field() {
+        let market = MarketSnapshot {
+            best_ask_sats_per_eh_day: -1.0,
+            ..market_snapshot()
+        };
+
+        assert!(market.validate().is_err());
+    }
 }

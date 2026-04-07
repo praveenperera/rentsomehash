@@ -34,6 +34,8 @@ impl Orderbook {
         self.top_ask().map(|ask| ask.sats_per_eh_day)
     }
 
+    // the Braiins orderbook API returns asks sorted ascending by price_sat,
+    // so first() yields the best (cheapest) ask
     fn top_ask(&self) -> Option<&OrderbookAsk> {
         self.asks.first()
     }
