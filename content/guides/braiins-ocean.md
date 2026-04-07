@@ -16,6 +16,8 @@ updated: "2026-04-06"
 
 Do not start here from zero.
 
+> Do not fund Braiins until your DATUM endpoint is stable. Braiins will not let you change the stratum target inside an existing bid, and deposited funds should not be treated like a withdrawable wallet balance. If your home IP changes after you fund Braiins, you can be stuck with sats tied to a dead endpoint. Home-hosted setups need DDNS, tunneling, or a stable static public IP before funding Braiins.
+
 Finish one node guide first:
 
 - [Fresh VPS node setup](/guides/vps/)
@@ -58,7 +60,7 @@ Common cases:
 
 Never paste a private LAN address like `192.168.x.y` into Braiins.
 
-Do not create the bid until that endpoint is stable. Braiins will not let you change the stratum target inside an existing bid, so a dynamic home IP is the wrong input unless DDNS or tunneling is already keeping that endpoint stable.
+Do not create the bid until that endpoint is stable. A dynamic home IP is the wrong input unless DDNS or tunneling is already keeping that endpoint stable.
 
 ## 3. Use the right pool username
 

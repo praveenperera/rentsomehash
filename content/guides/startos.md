@@ -16,6 +16,8 @@ updated: "2026-04-06"
 
 Use this guide if you want to use StartOS instead, or if you are already running StartOS 0.4.0, which is the setup advised in the source notes.
 
+> Do not use a raw dynamic home IP with Braiins. Braiins will not let you change the stratum target inside an existing bid, and deposited funds should not be treated like a withdrawable wallet balance. If your home IP changes after you fund Braiins, you can be stuck with sats tied to a dead endpoint. Use DDNS, Start Tunnel, or a stable static public IP before funding Braiins.
+
 There are two broad ways to expose the service:
 
 - Forward a port from your router and give Braiins a DDNS hostname or stable static public IP
@@ -87,7 +89,7 @@ Replace `hostname.domain.com` with the actual DDNS hostname your router keeps up
 
 If you are not using DDNS, only use the raw public IP when your ISP actually gives you a stable static public IP.
 
-Do not point Braiins at a rotating home IP. Braiins will not let you change the stratum target inside an existing bid, so if that IP changes the bid is effectively dead until you rebuild the setup around a working endpoint.
+Do not point Braiins at a rotating home IP. Braiins will not let you change the stratum target inside an existing bid.
 
 ## What you bring into Braiins
 

@@ -17,7 +17,7 @@ warnings:
   - title: "Pruning is the sane default on a VPS"
     body: "If this is a rented machine, pruning to 550 is the practical choice. Running an archival node on a VPS is usually paying for storage you do not need for this workflow."
   - title: "Braiins fields are easy to get almost right"
-    body: "The mining pool URL must point to a stable DATUM endpoint on port `23334`. Braiins will not let you change the stratum target inside an existing bid, so do not use a rotating home IP. For home-hosted setups, use DDNS or tunneling before you create the bid."
+    body: "Do not fund Braiins against a raw dynamic home IP. Braiins will not let you change the stratum target inside an existing bid, and deposited funds should not be treated like a withdrawable wallet balance. For home-hosted setups, use DDNS, tunneling, or a stable static public IP first."
 ---
 
 This is a cleaned-up version of Mechanic's workflow for getting from zero to a working Braiins-to-OCEAN setup.

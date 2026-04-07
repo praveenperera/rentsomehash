@@ -16,6 +16,8 @@ updated: "2026-04-06"
 
 Use this guide if you already run Umbrel and want to keep the node and DATUM on hardware you already trust.
 
+> Do not use a raw dynamic home IP with Braiins. Braiins will not let you change the stratum target inside an existing bid, and deposited funds should not be treated like a withdrawable wallet balance. If your home IP changes after you fund Braiins, you can be stuck with sats tied to a dead endpoint. Use DDNS, a tunnel, or a stable static public IP before funding Braiins.
+
 This guide leaves you with an Umbrel-hosted DATUM endpoint ready for the shared Braiins guide:
 
 - Install Bitcoin Knots on Umbrel
@@ -139,11 +141,7 @@ If your router lets you reserve DHCP leases, it is worth pinning the Umbrel box 
 
 For Braiins, this needs to be a stable public endpoint, not just whatever home IP you happen to have right now.
 
-Braiins will not let you change the stratum target inside an existing bid.
-
-If your home IP changes after the bid is live, that bid is effectively dead until you create a new path with a working endpoint.
-
-That means dynamic home connections should not use a raw public IP with Braiins. Use DDNS or put some tunnel in front of the box before creating the bid.
+Reminder: Braiins will not let you change the stratum target inside an existing bid. Do not use a raw dynamic home IP here.
 
 ### 7a. If your router supports DDNS
 
