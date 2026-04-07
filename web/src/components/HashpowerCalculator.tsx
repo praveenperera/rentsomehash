@@ -269,7 +269,7 @@ function NumberSlider({
   return (
     <label
       className={cn(
-        "-m-3 block space-y-3 border border-transparent p-3 transition-colors",
+        "block space-y-3 border border-transparent p-3 transition-colors",
         modified &&
           "border-primary/50 bg-primary/10 shadow-[0_0_0_1px_hsl(var(--primary)/0.12)]",
       )}
