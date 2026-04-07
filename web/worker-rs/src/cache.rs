@@ -1,14 +1,17 @@
 use worker::{Env, kv::KvStore};
 
 use crate::{
-    market::MarketClient,
+    market::{MarketClient, OceanFeeEstimate, fetch_ocean_fee_estimate},
     types::{CacheMode, CalculatorWarning, MarketSnapshot, WarningCode},
 };
 
 const CACHE_BINDING: &str = "HASHPOWER_CACHE";
 const CACHE_KEY: &str = "hashpower-calculator:v1";
+const FEE_CACHE_KEY: &str = "hashpower-calculator:ocean-fees:v1";
 const FRESH_SECONDS: u32 = 60;
 const EXPIRATION_SECONDS: u64 = 300;
+const FEE_FRESH_SECONDS: u32 = 3_600;
+const FEE_EXPIRATION_SECONDS: u64 = 21_600;
 
 pub struct MarketCache {
     kv: Option<KvStore>,
@@ -44,7 +47,9 @@ impl MarketCache {
             });
         }
 
-        match MarketClient::new(self.now).fetch().await {
+        let ocean_fee_estimate = self.ocean_fee_estimate().await;
+
+        match MarketClient::new(self.now).fetch(ocean_fee_estimate).await {
             Ok(market) => self.return_refreshed(market).await,
             Err(error) => self.return_stale(cached, error),
         }
@@ -109,7 +114,51 @@ impl MarketCache {
             .flatten()
     }
 
+    async fn ocean_fee_estimate(&self) -> Option<OceanFeeEstimate> {
+        let cached = self.read_ocean_fee_estimate().await;
+
+        if let Some(estimate) = cached.as_ref()
+            && self.is_fee_estimate_fresh(estimate)
+        {
+            return cached;
+        }
+
+        match fetch_ocean_fee_estimate(self.now).await {
+            Ok(estimate) => {
+                self.write_ocean_fee_estimate(&estimate).await;
+                Some(estimate)
+            }
+            Err(_) => cached,
+        }
+    }
+
+    async fn read_ocean_fee_estimate(&self) -> Option<OceanFeeEstimate> {
+        let kv = self.kv.as_ref()?;
+        kv.get(FEE_CACHE_KEY)
+            .json::<OceanFeeEstimate>()
+            .await
+            .ok()
+            .flatten()
+    }
+
+    async fn write_ocean_fee_estimate(&self, estimate: &OceanFeeEstimate) {
+        let Some(kv) = self.kv.as_ref() else {
+            return;
+        };
+
+        let Ok(builder) = kv.put(FEE_CACHE_KEY, estimate) else {
+            return;
+        };
+        let builder = builder.expiration_ttl(FEE_EXPIRATION_SECONDS);
+
+        let _ = builder.execute().await;
+    }
+
     fn is_fresh(&self, market: &MarketSnapshot) -> bool {
         self.now.saturating_sub(market.fetched_at) < FRESH_SECONDS
+    }
+
+    fn is_fee_estimate_fresh(&self, estimate: &OceanFeeEstimate) -> bool {
+        self.now.saturating_sub(estimate.fetched_at) < FEE_FRESH_SECONDS
     }
 }

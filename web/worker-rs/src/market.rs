@@ -1,6 +1,6 @@
-use futures::join;
+use futures::{future::join_all, join};
 use regex::Regex;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use url::Url;
 use worker::Fetch;
 
@@ -11,6 +11,10 @@ const BRAIINS_ORDERBOOK_URL: &str = "https://hashpower.braiins.com/webapi/orderb
 const BRAIINS_DIFFICULTY_STATS_URL: &str = "https://hashpower.braiins.com/webapi/difficulty-stats";
 const BRAIINS_BTC_PRICE_URL: &str = "https://hashpower.braiins.com/webapi/btc-price";
 const OCEAN_DASHBOARD_URL: &str = "https://ocean.xyz/dashboard";
+const OCEAN_BLOCKS_FOUND_URL: &str = "https://ocean.xyz/data/json/blocksfound?range=1m";
+const MEMPOOL_BLOCK_SUMMARY_URL_BASE: &str = "https://mempool.space/api/v1/block";
+const OCEAN_BLOCK_FEE_SAMPLE_SIZE: usize = 12;
+const SATS_PER_BTC: f64 = 100_000_000.0;
 
 pub struct MarketClient {
     now: u32,
@@ -21,7 +25,10 @@ impl MarketClient {
         Self { now }
     }
 
-    pub async fn fetch(&self) -> Result<MarketSnapshot, String> {
+    pub async fn fetch(
+        &self,
+        ocean_fee_estimate: Option<OceanFeeEstimate>,
+    ) -> Result<MarketSnapshot, String> {
         let spot = fetch_json::<BraiinsSpotStats>(BRAIINS_SPOT_STATS_URL);
         let orderbook = fetch_json::<BraiinsOrderbook>(BRAIINS_ORDERBOOK_URL);
         let difficulty = fetch_json::<BraiinsDifficultyStats>(BRAIINS_DIFFICULTY_STATS_URL);
@@ -50,10 +57,23 @@ impl MarketClient {
             ocean_average_time_to_block_hours: ocean
                 .as_ref()
                 .map(|timing| timing.average_time_to_block_hours),
+            ocean_average_block_tx_fees_btc: ocean_fee_estimate
+                .as_ref()
+                .map(|estimate| estimate.average_block_tx_fees_btc),
+            ocean_block_fee_sample_size: ocean_fee_estimate
+                .as_ref()
+                .map_or(0, |estimate| estimate.sample_size),
             fetched_at: self.now,
             sources: market_sources(),
         })
     }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct OceanFeeEstimate {
+    pub average_block_tx_fees_btc: f64,
+    pub sample_size: u32,
+    pub fetched_at: u32,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -92,6 +112,17 @@ struct BraiinsBtcPrice {
     price: f64,
 }
 
+#[derive(Clone, Debug, Deserialize)]
+struct OceanFoundBlock {
+    #[serde(rename = "blockHash")]
+    block_hash: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+struct MempoolTxSummary {
+    fee: f64,
+}
+
 #[derive(Clone, Debug)]
 struct OceanTiming {
     hashrate_eh: f64,
@@ -116,6 +147,44 @@ where
         .json::<T>()
         .await
         .map_err(|error| format!("upstream JSON parse failed: {error}"))
+}
+
+pub async fn fetch_ocean_fee_estimate(now: u32) -> Result<OceanFeeEstimate, String> {
+    let blocks = fetch_json::<Vec<OceanFoundBlock>>(OCEAN_BLOCKS_FOUND_URL).await?;
+    let fee_requests = blocks
+        .into_iter()
+        .take(OCEAN_BLOCK_FEE_SAMPLE_SIZE)
+        .map(|block| fetch_mempool_block_fees_btc(block.block_hash));
+    let fees = join_all(fee_requests).await;
+    let fees: Vec<f64> = fees.into_iter().filter_map(Result::ok).collect();
+    let Some(average_block_tx_fees_btc) = average_block_fees_btc(&fees) else {
+        return Err("recent OCEAN block fee estimate unavailable".to_string());
+    };
+
+    Ok(OceanFeeEstimate {
+        average_block_tx_fees_btc,
+        sample_size: fees.len() as u32,
+        fetched_at: now,
+    })
+}
+
+async fn fetch_mempool_block_fees_btc(block_hash: String) -> Result<f64, String> {
+    let url = format!("{MEMPOOL_BLOCK_SUMMARY_URL_BASE}/{block_hash}/summary");
+    let transactions = fetch_json::<Vec<MempoolTxSummary>>(&url).await?;
+    let fee_sats = transactions
+        .into_iter()
+        .map(|transaction| transaction.fee)
+        .sum::<f64>();
+
+    Ok(fee_sats / SATS_PER_BTC)
+}
+
+fn average_block_fees_btc(fees: &[f64]) -> Option<f64> {
+    if fees.is_empty() {
+        return None;
+    }
+
+    Some(fees.iter().sum::<f64>() / fees.len() as f64)
 }
 
 async fn fetch_ocean_timing() -> Result<Option<OceanTiming>, String> {
@@ -203,6 +272,14 @@ fn market_sources() -> Vec<MarketSource> {
             label: "OCEAN dashboard".to_string(),
             url: OCEAN_DASHBOARD_URL.to_string(),
         },
+        MarketSource {
+            label: "OCEAN recent blocks".to_string(),
+            url: OCEAN_BLOCKS_FOUND_URL.to_string(),
+        },
+        MarketSource {
+            label: "mempool.space block summaries".to_string(),
+            url: MEMPOOL_BLOCK_SUMMARY_URL_BASE.to_string(),
+        },
     ]
 }
 
@@ -237,5 +314,12 @@ mod tests {
         let timing = parse_ocean_timing(html).unwrap().unwrap();
 
         assert_eq!(timing.average_time_to_block_hours, 0.75);
+    }
+
+    #[test]
+    fn averages_block_fees() {
+        let average = average_block_fees_btc(&[0.01, 0.03, 0.05]);
+
+        assert_eq!(average, Some(0.03));
     }
 }

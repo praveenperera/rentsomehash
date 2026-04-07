@@ -335,7 +335,11 @@ function ResultsGrid({
       <MetricCard
         eyebrow="Expected mined"
         title={`${formatBtc(data.results.expectedMinedBtc)} BTC`}
-        description="Estimated after 1% OCEAN DATUM fee, subsidy-only"
+        description={
+          data.market.oceanAverageBlockTxFeesBtc === null
+            ? "Estimated after 1% OCEAN DATUM fee, subsidy-only"
+            : "Estimated with recent tx fees and 1% OCEAN DATUM fee"
+        }
       />
       <MetricCard
         eyebrow="Buying spot"
@@ -440,6 +444,22 @@ function OceanTimingCard({ data }: { data: HashpowerCalculatorResponse }) {
             value={
               data.results.probabilityAtLeastTwoOceanBlocks
                 ? formatPercent(data.results.probabilityAtLeastTwoOceanBlocks)
+                : "Unavailable"
+            }
+          />
+          <TimingItem
+            label="Avg tx fees / block"
+            value={
+              data.market.oceanAverageBlockTxFeesBtc
+                ? `${formatBtc(data.market.oceanAverageBlockTxFeesBtc)} BTC`
+                : "Unavailable"
+            }
+          />
+          <TimingItem
+            label="Fee estimate source"
+            value={
+              data.market.oceanBlockFeeSampleSize > 0
+                ? `${formatNumber(data.market.oceanBlockFeeSampleSize, 0)} recent OCEAN blocks`
                 : "Unavailable"
             }
           />
@@ -551,8 +571,12 @@ function calculateResults(
   const expectedNetworkBlocks =
     (hashrateEh * HASHES_PER_EH * inputs.durationDays * SECONDS_PER_DAY) /
     (market.difficulty * MAX_U32_TARGET);
+  const grossBlockRewardBtc =
+    BLOCK_SUBSIDY_BTC + (market.oceanAverageBlockTxFeesBtc ?? 0);
   const expectedMinedBtc =
-    expectedNetworkBlocks * BLOCK_SUBSIDY_BTC * (1 - OCEAN_DATUM_POOL_FEE_RATE);
+    expectedNetworkBlocks *
+    grossBlockRewardBtc *
+    (1 - OCEAN_DATUM_POOL_FEE_RATE);
   const deltaPct = (expectedMinedBtc / buyBtc - 1) * 100;
   const expectedOceanBlocks = market.oceanAverageTimeToBlockHours
     ? (inputs.durationDays * 24) / market.oceanAverageTimeToBlockHours
@@ -591,8 +615,7 @@ function localWarnings(
     },
     {
       code: "SIMPLIFIED_MODEL",
-      message:
-        "This estimate includes OCEAN's 1% DATUM pool fee and ignores Bitcoin transaction fees, future difficulty changes, bid slippage, OCEAN TIDES/share-log edge cases, and mining variance.",
+      message: modelWarning(market),
     },
   ];
 
@@ -621,6 +644,14 @@ function localWarnings(
   }
 
   return warnings;
+}
+
+function modelWarning(market: MarketSnapshot) {
+  if (market.oceanAverageBlockTxFeesBtc !== null) {
+    return `This estimate uses a recent OCEAN block transaction-fee average of ${formatBtc(market.oceanAverageBlockTxFeesBtc)} BTC per block, applies OCEAN's 1% DATUM pool fee, and ignores future difficulty changes, fee changes, bid slippage, OCEAN TIDES/share-log edge cases, and mining variance.`;
+  }
+
+  return "Recent OCEAN block transaction-fee data is unavailable, so this estimate uses subsidy only, applies OCEAN's 1% DATUM pool fee, and ignores future difficulty changes, fee changes, bid slippage, OCEAN TIDES/share-log edge cases, and mining variance.";
 }
 
 function exceedsTopAskLiquidity(

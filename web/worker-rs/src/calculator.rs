@@ -46,8 +46,9 @@ impl<'a> HashpowerCalculator<'a> {
         let hashrate_eh = self.hashrate_eh(budget_btc);
         let hashrate_ph = hashrate_eh * 1_000.0;
         let expected_network_blocks = self.expected_network_blocks(hashrate_eh);
-        let expected_mined_btc =
-            expected_network_blocks * BLOCK_SUBSIDY_BTC * (1.0 - OCEAN_DATUM_POOL_FEE_RATE);
+        let expected_mined_btc = expected_network_blocks
+            * self.gross_block_reward_btc()
+            * (1.0 - OCEAN_DATUM_POOL_FEE_RATE);
         let buy_btc = budget_btc;
         let delta_pct = ((expected_mined_btc / buy_btc) - 1.0) * 100.0;
         let expected_ocean_blocks = self.expected_ocean_blocks();
@@ -76,7 +77,7 @@ impl<'a> HashpowerCalculator<'a> {
             },
             CalculatorWarning {
                 code: WarningCode::SimplifiedModel,
-                message: "This estimate includes OCEAN's 1% DATUM pool fee and ignores Bitcoin transaction fees, future difficulty changes, bid slippage, OCEAN TIDES/share-log edge cases, and mining variance.".to_string(),
+                message: self.model_warning(),
             },
         ];
 
@@ -127,6 +128,20 @@ impl<'a> HashpowerCalculator<'a> {
 
     fn price_btc_per_eh_day(&self) -> f64 {
         (self.inputs.price_sats_per_ph_day * 1_000.0) / 100_000_000.0
+    }
+
+    fn gross_block_reward_btc(&self) -> f64 {
+        BLOCK_SUBSIDY_BTC + self.market.ocean_average_block_tx_fees_btc.unwrap_or(0.0)
+    }
+
+    fn model_warning(&self) -> String {
+        if let Some(fees_btc) = self.market.ocean_average_block_tx_fees_btc {
+            return format!(
+                "This estimate uses a recent OCEAN block transaction-fee average of {fees_btc:.8} BTC per block, applies OCEAN's 1% DATUM pool fee, and ignores future difficulty changes, fee changes, bid slippage, OCEAN TIDES/share-log edge cases, and mining variance."
+            );
+        }
+
+        "Recent OCEAN block transaction-fee data is unavailable, so this estimate uses subsidy only, applies OCEAN's 1% DATUM pool fee, and ignores future difficulty changes, fee changes, bid slippage, OCEAN TIDES/share-log edge cases, and mining variance.".to_string()
     }
 
     fn exceeds_top_ask_liquidity(&self, results: &CalculatorResults) -> bool {
@@ -227,6 +242,8 @@ mod tests {
             market_status: "SPOT_INSTRUMENT_STATUS_ACTIVE".to_string(),
             ocean_hashrate_eh: Some(12.94),
             ocean_average_time_to_block_hours: Some(11.0),
+            ocean_average_block_tx_fees_btc: Some(0.05),
+            ocean_block_fee_sample_size: 12,
             fetched_at: 1_776_724_200,
             sources: Vec::new(),
         }
@@ -276,7 +293,9 @@ mod tests {
         };
         let market = market();
         let results = HashpowerCalculator::new(&inputs, &market).results();
-        let gross_mined_btc = results.expected_network_blocks * BLOCK_SUBSIDY_BTC;
+        let gross_block_reward_btc =
+            BLOCK_SUBSIDY_BTC + market.ocean_average_block_tx_fees_btc.unwrap();
+        let gross_mined_btc = results.expected_network_blocks * gross_block_reward_btc;
 
         assert!((results.expected_mined_btc - gross_mined_btc * 0.99).abs() < 0.000_000_000_001);
     }

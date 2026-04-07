@@ -36,6 +36,8 @@ pub struct MarketSnapshot {
     pub market_status: String,
     pub ocean_hashrate_eh: Option<f64>,
     pub ocean_average_time_to_block_hours: Option<f64>,
+    pub ocean_average_block_tx_fees_btc: Option<f64>,
+    pub ocean_block_fee_sample_size: u32,
     pub fetched_at: u32,
     pub sources: Vec<MarketSource>,
 }
