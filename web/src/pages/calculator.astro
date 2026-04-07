@@ -1,0 +1,43 @@
+---
+import Footer from "@/components/Footer.astro";
+import { HashpowerCalculator } from "@/components/HashpowerCalculator";
+import Header from "@/components/Header.astro";
+import { Badge } from "@/components/ui/badge";
+import { getGuides } from "@/lib/content";
+import SiteLayout from "@/layouts/SiteLayout.astro";
+
+const guides = await getGuides();
+---
+
+<SiteLayout
+  title="Hashpower calculator"
+  description="Compare expected rented Braiins hashpower output against buying bitcoin outright at spot."
+  ogImage="/images/rentsomehash-og-calculator.png"
+>
+  <Header guides={guides} currentPath={Astro.url.pathname} />
+
+  <main class="pb-24">
+    <section class="border-b border-border/70">
+      <div class="mx-auto max-w-6xl px-6 pt-28 pb-14 lg:px-8">
+        <div class="space-y-5">
+          <Badge variant="outline" className="border-primary/25 bg-primary/10 text-primary">
+            Expected value calculator
+          </Badge>
+          <h1 class="max-w-4xl text-4xl font-heading font-medium tracking-[-0.08em] text-balance sm:text-5xl">
+            Compare renting hashpower with buying bitcoin outright
+          </h1>
+          <p class="max-w-3xl text-lg leading-8 text-foreground/76">
+            Pick a budget, duration, and Braiins hashpower price. The Worker pulls live market data,
+            does the math server-side, and shows the expected BTC result against buying spot BTC.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="mx-auto max-w-6xl px-6 py-14 lg:px-8">
+      <HashpowerCalculator client:load />
+    </section>
+  </main>
+
+  <Footer guides={guides} />
+</SiteLayout>

@@ -1,4 +1,5 @@
 import { BraiinsOceanCard } from "./cards/braiins-ocean";
+import { CalculatorCard } from "./cards/calculator";
 import { StartOsCard } from "./cards/startos";
 import { UmbrelCard } from "./cards/umbrel";
 import { VpsCard } from "./cards/vps";
@@ -31,6 +32,31 @@ export default {
     },
   ],
   cards: [
+    {
+      description: "Hashpower calculator OG card",
+      height: 630,
+      name: "calculator",
+      outputs: [
+        {
+          format: "svg" as const,
+          path: "./calculator.svg",
+        },
+        {
+          format: "png" as const,
+          path: "../../public/images/rentsomehash-og-calculator.png",
+        },
+      ],
+      async render({
+        asset,
+      }: {
+        asset: { fitSvgDataUri: (path: string) => Promise<string> };
+      }) {
+        const artSrc = await asset.fitSvgDataUri("./assets/braiins-art.svg");
+
+        return <CalculatorCard artSrc={artSrc} />;
+      },
+      width: 1200,
+    },
     {
       description: "Fresh VPS node setup OG card",
       height: 630,

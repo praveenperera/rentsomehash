@@ -33,6 +33,8 @@ Before you do anything on Braiins, make sure that guide has already left you wit
 
 If one of those is missing, stop and go back to the node guide.
 
+Before you fund Braiins, you can also use the [hashpower calculator](/calculator/) to compare the expected rented-hashpower result against buying BTC outright at spot.
+
 ## 1. Create and fund the Braiins account
 
 Create a Braiins hashpower account here:

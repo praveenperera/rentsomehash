@@ -66,6 +66,9 @@ const { Content } = await render(home);
             <a href={home.data.secondaryCtaHref} class={buttonVariants({ variant: "outline", size: "lg" })}>
               {home.data.secondaryCtaLabel}
             </a>
+            <a href="/calculator/" class={buttonVariants({ variant: "outline", size: "lg" })}>
+              Estimate hashpower EV
+            </a>
           </div>
 
           <div class="content-prose max-w-2xl">
@@ -226,6 +229,24 @@ const { Content } = await render(home);
 
           <div>
             <GuideListItem guide={braiinsGuide} />
+          </div>
+
+          <div class="border border-primary/30 bg-primary/10 p-5">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div class="space-y-2">
+                <p class="text-[11px] uppercase tracking-[0.24em] text-primary">
+                  Before funding
+                </p>
+                <p class="max-w-2xl text-sm leading-7 text-foreground/76">
+                  Use the calculator to compare the expected hashpower result against simply buying
+                  BTC at spot before you send sats into Braiins.
+                </p>
+              </div>
+              <a href="/calculator/" class={buttonVariants({ size: "lg" })}>
+                Open calculator
+                <ArrowRightIcon className="size-4" aria-hidden="true" />
+              </a>
+            </div>
           </div>
         </div>
       </div>

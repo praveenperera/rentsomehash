@@ -12,6 +12,7 @@ interface Props {
 const { guides, currentPath } = Astro.props;
 const navLinks = [
   { href: "/", label: "Home" },
+  { href: "/calculator/", label: "Calculator" },
   ...guides.map((guide) => ({
     href: getGuideHref(guide),
     label: guide.data.navLabel,

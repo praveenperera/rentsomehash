@@ -16,6 +16,7 @@ const { guides } = Astro.props;
     <p>Rent Some Hash</p>
     <div class="flex flex-wrap gap-4">
       <a href="/" class="transition-colors hover:text-foreground">Home</a>
+      <a href="/calculator/" class="transition-colors hover:text-foreground">Calculator</a>
       {guides.map((guide) => (
         <a href={getGuideHref(guide)} class="transition-colors hover:text-foreground">
           {guide.data.navLabel}
