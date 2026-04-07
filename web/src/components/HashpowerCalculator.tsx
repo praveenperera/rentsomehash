@@ -86,6 +86,7 @@ export function HashpowerCalculator() {
             <CardDescription className="text-sm leading-7">
               Hashpower price starts from the live Braiins best ask. If you edit
               it, the calculator uses your custom sats/PH/day assumption.
+              Results are estimates based on current inputs, not a forecast.
             </CardDescription>
           </CardHeader>
           <CalculatorControls
@@ -332,7 +333,7 @@ function ResultsGrid({ data }: { data: HashpowerCalculatorResponse }) {
       <MetricCard
         eyebrow="Expected mined"
         title={`${formatBtc(data.results.expectedMinedBtc)} BTC`}
-        description="Subsidy-only expected value"
+        description="Estimated subsidy-only expected value"
       />
       <MetricCard
         eyebrow="Buying spot"
@@ -356,7 +357,7 @@ function ResultsGrid({ data }: { data: HashpowerCalculatorResponse }) {
             {formatSignedPercent(data.results.deltaPct)}
           </span>
         }
-        description="Positive means the hashpower estimate returns more BTC than buying spot"
+        description="Positive means the estimate returns more BTC than buying spot"
       />
     </div>
   );
@@ -456,8 +457,9 @@ function WarningsCard({ data }: { data: HashpowerCalculatorResponse }) {
           Model notes
         </CardTitle>
         <CardDescription className="text-sm leading-7">
-          Market data fetched at{" "}
-          {new Date(data.market.fetchedAt * 1_000).toLocaleString()}.
+          Estimate generated from market data fetched at{" "}
+          {new Date(data.market.fetchedAt * 1_000).toLocaleString()}. Treat this
+          as a rough comparison, not a mining forecast.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
