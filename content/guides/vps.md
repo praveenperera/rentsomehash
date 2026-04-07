@@ -105,6 +105,8 @@ Then continue here:
 
 <https://rentsomehash.com/guides/braiins-ocean/>
 
+Before funding Braiins, you can also run the [hashpower calculator](/calculator/) to compare the estimate against buying BTC outright.
+
 ## Why use this guide
 
 - This is the cleanest route if you do not already run a node and just want to get from zero to a working DATUM box

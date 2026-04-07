@@ -137,11 +137,11 @@ impl<'a> HashpowerCalculator<'a> {
     fn model_warning(&self) -> String {
         if let Some(fees_btc) = self.market.ocean_average_block_tx_fees_btc {
             return format!(
-                "This estimate uses a recent OCEAN block transaction-fee average of {fees_btc:.8} BTC per block, applies OCEAN's 1% DATUM pool fee, and ignores future difficulty changes, fee changes, bid slippage, OCEAN TIDES/share-log edge cases, and mining variance."
+                "This estimate uses a recent OCEAN block transaction-fee average of {fees_btc:.8} BTC per block, applies OCEAN's 1% DATUM pool fee, and ignores future difficulty changes, fee changes, bid slippage, exact OCEAN TIDES payout accounting, and mining variance."
             );
         }
 
-        "Recent OCEAN block transaction-fee data is unavailable, so this estimate uses subsidy only, applies OCEAN's 1% DATUM pool fee, and ignores future difficulty changes, fee changes, bid slippage, OCEAN TIDES/share-log edge cases, and mining variance.".to_string()
+        "Recent OCEAN block transaction-fee data is unavailable, so this estimate uses subsidy only, applies OCEAN's 1% DATUM pool fee, and ignores future difficulty changes, fee changes, bid slippage, exact OCEAN TIDES payout accounting, and mining variance.".to_string()
     }
 
     fn exceeds_top_ask_liquidity(&self, results: &CalculatorResults) -> bool {

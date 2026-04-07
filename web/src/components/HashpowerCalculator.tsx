@@ -672,10 +672,10 @@ function localWarnings(
 
 function modelWarning(market: MarketSnapshot) {
   if (market.oceanAverageBlockTxFeesBtc !== null) {
-    return `This estimate uses a recent OCEAN block transaction-fee average of ${formatBtc(market.oceanAverageBlockTxFeesBtc)} BTC per block, applies OCEAN's 1% DATUM pool fee, and ignores future difficulty changes, fee changes, bid slippage, OCEAN TIDES/share-log edge cases, and mining variance.`;
+    return `This estimate uses a recent OCEAN block transaction-fee average of ${formatBtc(market.oceanAverageBlockTxFeesBtc)} BTC per block, applies OCEAN's 1% DATUM pool fee, and ignores future difficulty changes, fee changes, bid slippage, exact OCEAN TIDES payout accounting, and mining variance.`;
   }
 
-  return "Recent OCEAN block transaction-fee data is unavailable, so this estimate uses subsidy only, applies OCEAN's 1% DATUM pool fee, and ignores future difficulty changes, fee changes, bid slippage, OCEAN TIDES/share-log edge cases, and mining variance.";
+  return "Recent OCEAN block transaction-fee data is unavailable, so this estimate uses subsidy only, applies OCEAN's 1% DATUM pool fee, and ignores future difficulty changes, fee changes, bid slippage, exact OCEAN TIDES payout accounting, and mining variance.";
 }
 
 function exceedsTopAskLiquidity(

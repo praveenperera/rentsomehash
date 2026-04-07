@@ -198,6 +198,8 @@ Then continue here:
 
 <https://rentsomehash.com/guides/braiins-ocean/>
 
+Before funding Braiins, you can also run the [hashpower calculator](/calculator/) to compare the estimate against buying BTC outright.
+
 ## Why use this guide
 
 - You already have an Umbrel box you trust, so you can reuse it instead of building a separate VPS stack
