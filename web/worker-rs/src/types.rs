@@ -62,6 +62,7 @@ pub struct CalculatorResults {
     pub expected_mined_btc: f64,
     pub delta_pct: f64,
     pub expected_ocean_blocks: Option<f64>,
+    pub one_ocean_block_shortfall_pct: Option<f64>,
     pub probability_at_least_one_ocean_block: Option<f64>,
     pub probability_at_least_two_ocean_blocks: Option<f64>,
 }

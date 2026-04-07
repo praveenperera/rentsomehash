@@ -3,6 +3,7 @@ import {
   ArrowDownIcon,
   ArrowUpIcon,
   CalculatorIcon,
+  QuestionIcon,
   WarningIcon,
 } from "@phosphor-icons/react";
 
@@ -18,6 +19,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { ApiErrorResponse } from "@/lib/generated/hashpower-calculator/ApiErrorResponse";
 import type { CalculatorInputs } from "@/lib/generated/hashpower-calculator/CalculatorInputs";
 import type { CalculatorResults } from "@/lib/generated/hashpower-calculator/CalculatorResults";
@@ -28,8 +34,10 @@ import type { WarningCode } from "@/lib/generated/hashpower-calculator/WarningCo
 import { cn } from "@/lib/utils";
 
 const DEFAULT_BUDGET_USD = 1_000;
-const DEFAULT_DURATION_DAYS = 7;
+const DEFAULT_DURATION_DAYS = 30;
 const DEFAULT_PRICE_SATS_PER_PH_DAY = 44_000;
+const MIN_DURATION_DAYS = 7;
+const MAX_DURATION_DAYS = 90;
 const BLOCK_SUBSIDY_BTC = 3.125;
 const OCEAN_DATUM_POOL_FEE_RATE = 0.01;
 const HASHES_PER_EH = 1e18;
@@ -95,7 +103,8 @@ export function HashpowerCalculator() {
           <CardDescription className="text-sm leading-7">
             Hashpower price starts from the live Braiins best ask. If you edit
             it, the calculator uses your custom sats/PH/day assumption. Results
-            are estimates based on current inputs, not a forecast.
+            are estimates based on current inputs, not a forecast. Longer
+            durations spread pool block variance across more expected blocks.
           </CardDescription>
         </CardHeader>
         <CalculatorControls
@@ -106,7 +115,9 @@ export function HashpowerCalculator() {
           priceTouched={priceTouched}
           priceSlider={priceSlider}
           onBudgetChange={setBudgetUsd}
-          onDurationChange={setDurationDays}
+          onDurationChange={(value) =>
+            setDurationDays(clamp(value, MIN_DURATION_DAYS, MAX_DURATION_DAYS))
+          }
           onPriceChange={(value) => {
             setPriceTouched(true);
             setPriceSatsPerPhDay(value);
@@ -137,7 +148,10 @@ export function HashpowerCalculator() {
       {data && (
         <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
           <OceanTimingCard data={data} />
-          <WarningsCard data={data} />
+          <div className="space-y-4">
+            <VarianceMathCard data={data} />
+            <WarningsCard data={data} />
+          </div>
         </div>
       )}
     </div>
@@ -219,8 +233,8 @@ function CalculatorControls({
       <NumberSlider
         label="Duration"
         value={durationDays}
-        min={1}
-        max={30}
+        min={MIN_DURATION_DAYS}
+        max={MAX_DURATION_DAYS}
         step={1}
         suffix="days"
         onChange={onDurationChange}
@@ -438,7 +452,8 @@ function OceanTimingCard({ data }: { data: HashpowerCalculatorResponse }) {
         </CardTitle>
         <CardDescription className="text-sm leading-7">
           OCEAN pool hashrate affects payout-event frequency, not the core
-          expected-value math.
+          expected-value math. Shorter windows can land materially below the
+          expected value if OCEAN finds fewer blocks than expected.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -468,10 +483,27 @@ function OceanTimingCard({ data }: { data: HashpowerCalculatorResponse }) {
             }
           />
           <TimingItem
-            label="Chance of 2+ pool blocks"
+            label={
+              <span className="inline-flex items-center gap-1.5">
+                One fewer block impact
+                <Tooltip>
+                  <TooltipTrigger
+                    aria-label="Explain one fewer block impact"
+                    className="size-4 border border-border bg-background/70 text-muted-foreground hover:text-foreground"
+                  >
+                    <QuestionIcon className="size-3" aria-hidden="true" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    One fewer block impact is 1 divided by expected OCEAN
+                    blocks. If the window expects 60 pool blocks, missing one
+                    block is about 1.7% below that block count.
+                  </TooltipContent>
+                </Tooltip>
+              </span>
+            }
             value={
-              data.results.probabilityAtLeastTwoOceanBlocks
-                ? formatPercent(data.results.probabilityAtLeastTwoOceanBlocks)
+              data.results.oneOceanBlockShortfallPct
+                ? formatPercentFromPct(data.results.oneOceanBlockShortfallPct)
                 : "Unavailable"
             }
           />
@@ -497,7 +529,44 @@ function OceanTimingCard({ data }: { data: HashpowerCalculatorResponse }) {
   );
 }
 
-function TimingItem({ label, value }: { label: string; value: string }) {
+function VarianceMathCard({ data }: { data: HashpowerCalculatorResponse }) {
+  return (
+    <Card className="bg-card/86">
+      <CardHeader>
+        <CardTitle className="text-lg tracking-[-0.06em]">
+          Variance math
+        </CardTitle>
+        <CardDescription className="text-sm leading-7">
+          Pool-level block variance context, not exact OCEAN TIDES payout
+          accounting.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3 font-mono text-[11px] leading-5 text-muted-foreground">
+        <p>
+          expected OCEAN blocks = {formatNumber(data.inputs.durationDays, 0)}
+          {" days * 24 / "}
+          {data.market.oceanAverageTimeToBlockHours
+            ? `${formatNumber(data.market.oceanAverageTimeToBlockHours, 1)} hours`
+            : "average hours per OCEAN block"}
+        </p>
+        <p>
+          one fewer block impact = 1 /{" "}
+          {data.results.expectedOceanBlocks
+            ? formatNumber(data.results.expectedOceanBlocks, 2)
+            : "expected OCEAN blocks"}
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function TimingItem({
+  label,
+  value,
+}: {
+  label: React.ReactNode;
+  value: string;
+}) {
   return (
     <div className="space-y-1 border border-border/70 bg-background/50 p-3">
       <dt className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
@@ -619,6 +688,8 @@ function calculateResults(
     expectedMinedBtc,
     deltaPct,
     expectedOceanBlocks,
+    oneOceanBlockShortfallPct:
+      expectedOceanBlocks === null ? null : 100 / expectedOceanBlocks,
     probabilityAtLeastOneOceanBlock:
       expectedOceanBlocks === null
         ? null
@@ -773,6 +844,10 @@ function formatPercent(value: number) {
     maximumFractionDigits: 1,
     style: "percent",
   }).format(value);
+}
+
+function formatPercentFromPct(value: number) {
+  return formatPercent(value / 100);
 }
 
 function formatSignedPercent(value: number) {

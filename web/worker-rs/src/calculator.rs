@@ -4,6 +4,9 @@ use crate::types::{
 
 const BLOCK_SUBSIDY_BTC: f64 = 3.125;
 const OCEAN_DATUM_POOL_FEE_RATE: f64 = 0.01;
+const DEFAULT_DURATION_DAYS: f64 = 30.0;
+const MIN_DURATION_DAYS: f64 = 7.0;
+const MAX_DURATION_DAYS: f64 = 90.0;
 const SECONDS_PER_DAY: f64 = 86_400.0;
 const HASHES_PER_EH: f64 = 1_000_000_000_000_000_000.0;
 const MAX_U32_TARGET: f64 = 4_294_967_296.0;
@@ -22,7 +25,7 @@ impl QueryInput {
     ) -> Result<CalculatorInputs, Vec<FieldError>> {
         let inputs = CalculatorInputs {
             budget_usd: self.budget_usd.unwrap_or(1_000.0),
-            duration_days: self.duration_days.unwrap_or(7.0),
+            duration_days: self.duration_days.unwrap_or(DEFAULT_DURATION_DAYS),
             price_sats_per_ph_day: self
                 .price_sats_per_ph_day
                 .unwrap_or(market.best_ask_sats_per_eh_day / 1_000.0),
@@ -62,6 +65,7 @@ impl<'a> HashpowerCalculator<'a> {
             expected_mined_btc,
             delta_pct,
             expected_ocean_blocks,
+            one_ocean_block_shortfall_pct: expected_ocean_blocks.map(one_block_shortfall_pct),
             probability_at_least_one_ocean_block: expected_ocean_blocks
                 .map(probability_at_least_one),
             probability_at_least_two_ocean_blocks: expected_ocean_blocks
@@ -171,6 +175,10 @@ fn probability_at_least_two(lambda: f64) -> f64 {
     1.0 - (-lambda).exp() * (1.0 + lambda)
 }
 
+fn one_block_shortfall_pct(expected_ocean_blocks: f64) -> f64 {
+    100.0 / expected_ocean_blocks
+}
+
 struct InputValidator {
     inputs: CalculatorInputs,
     errors: Vec<FieldError>,
@@ -195,9 +203,9 @@ impl InputValidator {
         self.validate_range(
             "duration_days",
             self.inputs.duration_days,
-            1.0,
-            90.0,
-            "Duration must be between 1 and 90 days",
+            MIN_DURATION_DAYS,
+            MAX_DURATION_DAYS,
+            "Duration must be between 7 and 90 days",
         );
         self.validate_range(
             "price_sats_per_ph_day",
@@ -273,10 +281,20 @@ mod tests {
     }
 
     #[test]
+    fn defaults_to_thirty_days() {
+        let market = market();
+        let inputs = QueryInput::default()
+            .with_market_defaults(&market)
+            .expect("expected valid default inputs");
+
+        assert_eq!(inputs.duration_days, 30.0);
+    }
+
+    #[test]
     fn validates_inputs() {
         let result = validate_inputs(CalculatorInputs {
             budget_usd: 0.0,
-            duration_days: 100.0,
+            duration_days: 1.0,
             price_sats_per_ph_day: f64::NAN,
         });
 
@@ -311,6 +329,9 @@ mod tests {
         let results = HashpowerCalculator::new(&inputs, &market).results();
 
         assert!((results.expected_ocean_blocks.unwrap() - 15.272_727_272_7).abs() < 0.000_000_1);
+        assert!(
+            (results.one_ocean_block_shortfall_pct.unwrap() - 6.547_619_047_6).abs() < 0.000_000_1
+        );
         assert!(results.probability_at_least_one_ocean_block.unwrap() > 0.999);
         assert!(results.probability_at_least_two_ocean_blocks.unwrap() > 0.999);
     }
