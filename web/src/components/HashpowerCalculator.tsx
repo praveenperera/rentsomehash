@@ -414,7 +414,7 @@ function RewardBreakdown({
   averageTxFeesBtc: number | null;
 }) {
   return (
-    <p className="font-mono text-[11px] leading-5 text-muted-foreground">
+    <p className="font-mono text-[10px] leading-4 text-muted-foreground/70">
       3.125 subsidy
       {averageTxFeesBtc === null
         ? " + unavailable tx fees"
