@@ -1,5 +1,6 @@
 use crate::types::{
-    CalculatorInputs, CalculatorResults, CalculatorWarning, FieldError, MarketSnapshot, WarningCode,
+    CalculatorInputField, CalculatorInputs, CalculatorResults, CalculatorWarning, FieldError,
+    MarketSnapshot, WarningCode,
 };
 
 const BLOCK_SUBSIDY_BTC: f64 = 3.125;
@@ -194,21 +195,21 @@ impl InputValidator {
 
     fn validate(mut self) -> Result<CalculatorInputs, Vec<FieldError>> {
         self.validate_range(
-            "budget_usd",
+            CalculatorInputField::BudgetUsd,
             self.inputs.budget_usd,
             1.0,
             10_000_000.0,
             "Budget must be between $1 and $10,000,000",
         );
         self.validate_range(
-            "duration_days",
+            CalculatorInputField::DurationDays,
             self.inputs.duration_days,
             MIN_DURATION_DAYS,
             MAX_DURATION_DAYS,
             "Duration must be between 7 and 90 days",
         );
         self.validate_range(
-            "price_sats_per_ph_day",
+            CalculatorInputField::PriceSatsPerPhDay,
             self.inputs.price_sats_per_ph_day,
             1.0,
             1_000_000.0,
@@ -222,13 +223,20 @@ impl InputValidator {
         }
     }
 
-    fn validate_range(&mut self, field: &str, value: f64, min: f64, max: f64, message: &str) {
+    fn validate_range(
+        &mut self,
+        field: CalculatorInputField,
+        value: f64,
+        min: f64,
+        max: f64,
+        message: &str,
+    ) {
         if value.is_finite() && value >= min && value <= max {
             return;
         }
 
         self.errors.push(FieldError {
-            field: field.to_string(),
+            field,
             message: message.to_string(),
         });
     }
@@ -300,6 +308,17 @@ mod tests {
 
         let errors = result.expect_err("expected validation errors");
         assert_eq!(errors.len(), 3);
+        assert_eq!(
+            errors
+                .iter()
+                .map(|error| error.field.clone())
+                .collect::<Vec<_>>(),
+            vec![
+                CalculatorInputField::BudgetUsd,
+                CalculatorInputField::DurationDays,
+                CalculatorInputField::PriceSatsPerPhDay,
+            ]
+        );
     }
 
     #[test]

@@ -12,7 +12,7 @@ service = "rentsomehash-api"
 [[ratelimits]]
 name = "CALCULATOR_RATE_LIMITER"
 namespace_id = "687732001"
-simple = { limit = 30, period = 60 }
+simple = { limit = 15, period = 60 }
 
 [assets]
 directory = "./dist"

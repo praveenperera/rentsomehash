@@ -100,26 +100,76 @@ pub enum CacheMode {
     Memoryless,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, TS)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export, rename_all = "camelCase")]
 pub struct ApiErrorResponse {
     pub error: ApiError,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, TS)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export, rename_all = "camelCase")]
 pub struct ApiError {
-    pub code: String,
+    pub code: ApiErrorCode,
     pub message: String,
     pub fields: Vec<FieldError>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, TS)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize, TS)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[ts(export, rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum ApiErrorCode {
+    InvalidInput,
+    MarketDataUnavailable,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export, rename_all = "camelCase")]
 pub struct FieldError {
-    pub field: String,
+    pub field: CalculatorInputField,
     pub message: String,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export, rename_all = "snake_case")]
+pub enum CalculatorInputField {
+    BudgetUsd,
+    DurationDays,
+    PriceSatsPerPhDay,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn serializes_api_error_codes_as_existing_wire_strings() {
+        assert_eq!(
+            serde_json::to_value(ApiErrorCode::InvalidInput).unwrap(),
+            serde_json::json!("INVALID_INPUT")
+        );
+        assert_eq!(
+            serde_json::to_value(ApiErrorCode::MarketDataUnavailable).unwrap(),
+            serde_json::json!("MARKET_DATA_UNAVAILABLE")
+        );
+    }
+
+    #[test]
+    fn serializes_input_fields_as_existing_wire_strings() {
+        assert_eq!(
+            serde_json::to_value(CalculatorInputField::BudgetUsd).unwrap(),
+            serde_json::json!("budget_usd")
+        );
+        assert_eq!(
+            serde_json::to_value(CalculatorInputField::DurationDays).unwrap(),
+            serde_json::json!("duration_days")
+        );
+        assert_eq!(
+            serde_json::to_value(CalculatorInputField::PriceSatsPerPhDay).unwrap(),
+            serde_json::json!("price_sats_per_ph_day")
+        );
+    }
 }
