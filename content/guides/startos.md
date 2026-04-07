@@ -104,6 +104,8 @@ Then continue here:
 
 <https://rentsomehash.com/guides/braiins-ocean/>
 
+Before funding Braiins, you can also run the [hashpower calculator](/calculator/) to compare the estimate against buying BTC outright.
+
 ## Why use this guide
 
 - You already have a StartOS box you trust, so you can reuse it instead of rebuilding the whole stack on a fresh VPS

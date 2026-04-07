@@ -1,0 +1,7 @@
+dist/
+.astro/
+node_modules/
+src/lib/generated/
+worker-rs/bindings/
+worker-rs/build/
+worker-rs/target/
