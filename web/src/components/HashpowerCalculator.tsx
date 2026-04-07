@@ -31,6 +31,7 @@ const DEFAULT_BUDGET_USD = 1_000;
 const DEFAULT_DURATION_DAYS = 7;
 const DEFAULT_PRICE_SATS_PER_PH_DAY = 44_000;
 const BLOCK_SUBSIDY_BTC = 3.125;
+const OCEAN_DATUM_POOL_FEE_RATE = 0.01;
 const HASHES_PER_EH = 1e18;
 const MAX_U32_TARGET = 4_294_967_296;
 const SECONDS_PER_DAY = 86_400;
@@ -334,7 +335,7 @@ function ResultsGrid({
       <MetricCard
         eyebrow="Expected mined"
         title={`${formatBtc(data.results.expectedMinedBtc)} BTC`}
-        description="Estimated subsidy-only expected value"
+        description="Estimated after 1% OCEAN DATUM fee, subsidy-only"
       />
       <MetricCard
         eyebrow="Buying spot"
@@ -550,7 +551,8 @@ function calculateResults(
   const expectedNetworkBlocks =
     (hashrateEh * HASHES_PER_EH * inputs.durationDays * SECONDS_PER_DAY) /
     (market.difficulty * MAX_U32_TARGET);
-  const expectedMinedBtc = expectedNetworkBlocks * BLOCK_SUBSIDY_BTC;
+  const expectedMinedBtc =
+    expectedNetworkBlocks * BLOCK_SUBSIDY_BTC * (1 - OCEAN_DATUM_POOL_FEE_RATE);
   const deltaPct = (expectedMinedBtc / buyBtc - 1) * 100;
   const expectedOceanBlocks = market.oceanAverageTimeToBlockHours
     ? (inputs.durationDays * 24) / market.oceanAverageTimeToBlockHours
@@ -590,7 +592,7 @@ function localWarnings(
     {
       code: "SIMPLIFIED_MODEL",
       message:
-        "This estimate ignores transaction fees, future difficulty changes, bid slippage, OCEAN TIDES/share-log edge cases, and mining variance.",
+        "This estimate includes OCEAN's 1% DATUM pool fee and ignores Bitcoin transaction fees, future difficulty changes, bid slippage, OCEAN TIDES/share-log edge cases, and mining variance.",
     },
   ];
 

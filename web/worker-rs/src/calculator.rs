@@ -3,6 +3,7 @@ use crate::types::{
 };
 
 const BLOCK_SUBSIDY_BTC: f64 = 3.125;
+const OCEAN_DATUM_POOL_FEE_RATE: f64 = 0.01;
 const SECONDS_PER_DAY: f64 = 86_400.0;
 const HASHES_PER_EH: f64 = 1_000_000_000_000_000_000.0;
 const MAX_U32_TARGET: f64 = 4_294_967_296.0;
@@ -45,7 +46,8 @@ impl<'a> HashpowerCalculator<'a> {
         let hashrate_eh = self.hashrate_eh(budget_btc);
         let hashrate_ph = hashrate_eh * 1_000.0;
         let expected_network_blocks = self.expected_network_blocks(hashrate_eh);
-        let expected_mined_btc = expected_network_blocks * BLOCK_SUBSIDY_BTC;
+        let expected_mined_btc =
+            expected_network_blocks * BLOCK_SUBSIDY_BTC * (1.0 - OCEAN_DATUM_POOL_FEE_RATE);
         let buy_btc = budget_btc;
         let delta_pct = ((expected_mined_btc / buy_btc) - 1.0) * 100.0;
         let expected_ocean_blocks = self.expected_ocean_blocks();
@@ -74,7 +76,7 @@ impl<'a> HashpowerCalculator<'a> {
             },
             CalculatorWarning {
                 code: WarningCode::SimplifiedModel,
-                message: "This estimate ignores transaction fees, future difficulty changes, bid slippage, OCEAN TIDES/share-log edge cases, and mining variance.".to_string(),
+                message: "This estimate includes OCEAN's 1% DATUM pool fee and ignores Bitcoin transaction fees, future difficulty changes, bid slippage, OCEAN TIDES/share-log edge cases, and mining variance.".to_string(),
             },
         ];
 
@@ -263,6 +265,20 @@ mod tests {
 
         let errors = result.expect_err("expected validation errors");
         assert_eq!(errors.len(), 3);
+    }
+
+    #[test]
+    fn applies_ocean_datum_pool_fee() {
+        let inputs = CalculatorInputs {
+            budget_usd: 1_000.0,
+            duration_days: 7.0,
+            price_sats_per_ph_day: 44_981.0,
+        };
+        let market = market();
+        let results = HashpowerCalculator::new(&inputs, &market).results();
+        let gross_mined_btc = results.expected_network_blocks * BLOCK_SUBSIDY_BTC;
+
+        assert!((results.expected_mined_btc - gross_mined_btc * 0.99).abs() < 0.000_000_000_001);
     }
 
     #[test]
