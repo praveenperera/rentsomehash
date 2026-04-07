@@ -9,8 +9,6 @@ use worker::Fetch;
 
 use crate::types::{MarketSnapshot, MarketSource};
 
-use validation::validate_market_snapshot;
-
 pub use ocean::{OceanFeeEstimate, OceanTiming, fetch_ocean_fee_estimate};
 
 pub struct MarketClient {
@@ -42,7 +40,7 @@ impl MarketClient {
         let btc_price = btc_price?;
         let ocean_timing = ocean_timing.ok();
 
-        validate_market_snapshot(MarketSnapshot {
+        MarketSnapshot {
             best_ask_sats_per_eh_day: spot.best_ask_sats_per_eh_day,
             last_avg_sats_per_eh_day: spot.last_avg_sats_per_eh_day,
             available_hashrate_ph: spot.available_hashrate_ph,
@@ -67,7 +65,8 @@ impl MarketClient {
                 .map_or(0, |estimate| estimate.sample_size),
             fetched_at: self.now,
             sources: market_sources(),
-        })
+        }
+        .validate()
     }
 }
 
