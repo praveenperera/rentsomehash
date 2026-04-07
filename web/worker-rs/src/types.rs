@@ -83,6 +83,7 @@ pub enum WarningCode {
     SimplifiedModel,
     StaleMarketData,
     MemorylessCache,
+    CacheWriteFailed,
     Liquidity,
     OceanTimingUnavailable,
     ShortOceanWindow,
@@ -95,6 +96,7 @@ pub enum CacheMode {
     KvFresh,
     KvStale,
     KvRefreshed,
+    KvWriteFailed,
     Memoryless,
 }
 

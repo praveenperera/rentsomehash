@@ -57,12 +57,28 @@ impl MarketCache {
 
     async fn return_refreshed(&self, market: MarketSnapshot) -> Result<MarketCacheResult, String> {
         if let Some(kv) = self.kv.as_ref() {
-            let _ = kv
-                .put(CACHE_KEY, &market)
-                .map_err(|error| error.to_string())?
-                .expiration_ttl(EXPIRATION_SECONDS)
-                .execute()
-                .await;
+            let write_result = match kv.put(CACHE_KEY, &market) {
+                Ok(builder) => builder
+                    .expiration_ttl(EXPIRATION_SECONDS)
+                    .execute()
+                    .await
+                    .map_err(|error| error.to_string()),
+                Err(error) => Err(error.to_string()),
+            };
+
+            if let Err(error) = write_result {
+                return Ok(MarketCacheResult {
+                    market,
+                    stale: false,
+                    cache_mode: CacheMode::KvWriteFailed,
+                    warnings: vec![CalculatorWarning {
+                        code: WarningCode::CacheWriteFailed,
+                        message: format!(
+                            "Live market data was refreshed, but writing it to KV cache failed: {error}"
+                        ),
+                    }],
+                });
+            }
 
             return Ok(MarketCacheResult {
                 market,

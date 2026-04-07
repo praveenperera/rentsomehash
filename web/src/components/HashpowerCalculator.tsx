@@ -90,6 +90,7 @@ export function HashpowerCalculator() {
         priceSatsPerPhDay: displayedPrice,
       })
     : null;
+  const isLoading = state.status === "loading";
   const priceSlider = priceSliderRange(displayedPrice);
   const budgetSliderMax = Math.max(10_000, budgetUsd);
 
@@ -145,7 +146,7 @@ export function HashpowerCalculator() {
           <div className="grid gap-4 md:grid-cols-2">
             <ResultsGrid data={data} priceModified={priceTouched} />
           </div>
-        ) : (
+        ) : isLoading ? (
           <Card className="bg-card/86 h-full">
             <CardHeader className="space-y-3">
               <Skeleton className="h-3 w-28" />
@@ -153,13 +154,18 @@ export function HashpowerCalculator() {
               <Skeleton className="h-4 w-48" />
             </CardHeader>
           </Card>
+        ) : (
+          <UnavailableCard
+            title="Estimate unavailable"
+            description="Live market data could not be loaded, so the estimate cannot be shown right now"
+          />
         )}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr] lg:items-stretch">
         {data ? (
           <OceanTimingCard data={data} />
-        ) : (
+        ) : isLoading ? (
           <Card className="bg-card/86 h-full">
             <CardHeader className="space-y-3">
               <Skeleton className="h-6 w-48" />
@@ -180,6 +186,11 @@ export function HashpowerCalculator() {
               </div>
             </CardContent>
           </Card>
+        ) : (
+          <UnavailableCard
+            title="Timing unavailable"
+            description="OCEAN timing and warning details are unavailable until live market data loads again"
+          />
         )}
 
         {data && <WarningsCard data={data} />}
@@ -302,6 +313,25 @@ function CalculatorControls({
   );
 }
 
+function UnavailableCard({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <Card className="bg-card/86 h-full">
+      <CardHeader className="space-y-3">
+        <CardTitle className="text-lg tracking-[-0.04em]">{title}</CardTitle>
+        <CardDescription className="text-sm leading-7">
+          {description}
+        </CardDescription>
+      </CardHeader>
+    </Card>
+  );
+}
+
 function NumberSlider({
   label,
   value,
@@ -347,9 +377,15 @@ function NumberSlider({
           min={min}
           max={Math.max(max, value)}
           step={step}
-          onChange={(event) =>
-            onChange(Number.parseFloat(event.currentTarget.value || "0"))
-          }
+          onChange={(event) => {
+            const nextValue = event.currentTarget.value;
+            const parsed = Number.parseFloat(nextValue);
+            if (!nextValue.trim() || !Number.isFinite(parsed)) {
+              return;
+            }
+
+            onChange(parsed);
+          }}
           className="w-36 pr-1.5 text-right font-mono [&::-webkit-inner-spin-button]:ml-2"
         />
       </div>
