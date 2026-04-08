@@ -86,6 +86,7 @@ fn default_orderbook_price(
         orderbook.and_then(braiins::Orderbook::default_ask_sats_per_eh_day);
     let default_ask_hashrate_ph = orderbook.and_then(braiins::Orderbook::default_ask_hashrate_ph);
 
+    // when every ask is fully used, fall back to the last traded average price
     (
         default_ask_sats_per_eh_day.unwrap_or(last_avg_sats_per_eh_day),
         default_ask_hashrate_ph,
@@ -132,8 +133,16 @@ mod tests {
     fn falls_back_to_last_average_price_when_no_ask_has_available_hash() {
         let orderbook: Orderbook = serde_json::from_value(serde_json::json!({
             "asks": [
-                { "price_sat": 44_000_000.0, "hashRateAvailable": 0.0 },
-                { "price_sat": 45_000_000.0, "hashRateAvailable": 0.0 }
+                {
+                    "price_sat": 44_000_000.0,
+                    "hashRateAvailable": 70.99,
+                    "hashRateMatched": 70.99
+                },
+                {
+                    "price_sat": 45_000_000.0,
+                    "hashRateAvailable": 111.58,
+                    "hashRateMatched": 111.58
+                }
             ]
         }))
         .expect("expected orderbook JSON to parse");
@@ -149,8 +158,16 @@ mod tests {
     fn uses_lowest_available_ask_when_present() {
         let orderbook: Orderbook = serde_json::from_value(serde_json::json!({
             "asks": [
-                { "price_sat": 44_000_000.0, "hashRateAvailable": 0.0 },
-                { "price_sat": 45_000_000.0, "hashRateAvailable": 2.5 }
+                {
+                    "price_sat": 44_000_000.0,
+                    "hashRateAvailable": 70.99,
+                    "hashRateMatched": 70.99
+                },
+                {
+                    "price_sat": 45_748_000.0,
+                    "hashRateAvailable": 248.39,
+                    "hashRateMatched": 201.98
+                }
             ]
         }))
         .expect("expected orderbook JSON to parse");
@@ -158,7 +175,7 @@ mod tests {
         let (default_price_sats_per_eh_day, default_ask_hashrate_ph) =
             default_orderbook_price(Some(&orderbook), 49_000_000.0);
 
-        assert_eq!(default_price_sats_per_eh_day, 45_000_000.0);
-        assert_eq!(default_ask_hashrate_ph, Some(2.5));
+        assert_eq!(default_price_sats_per_eh_day, 45_748_000.0);
+        assert_eq!(default_ask_hashrate_ph, Some(46.41));
     }
 }

@@ -27,7 +27,7 @@ pub(crate) struct Orderbook {
 
 impl Orderbook {
     pub(crate) fn top_ask_hashrate_ph(&self) -> Option<f64> {
-        self.top_ask().map(|ask| ask.hashrate_ph)
+        self.top_ask().map(OrderbookAsk::remaining_hashrate_ph)
     }
 
     pub(crate) fn top_ask_sats_per_eh_day(&self) -> Option<f64> {
@@ -35,7 +35,8 @@ impl Orderbook {
     }
 
     pub(crate) fn default_ask_hashrate_ph(&self) -> Option<f64> {
-        self.lowest_available_ask().map(|ask| ask.hashrate_ph)
+        self.lowest_available_ask()
+            .map(OrderbookAsk::remaining_hashrate_ph)
     }
 
     pub(crate) fn default_ask_sats_per_eh_day(&self) -> Option<f64> {
@@ -49,7 +50,9 @@ impl Orderbook {
     }
 
     fn lowest_available_ask(&self) -> Option<&OrderbookAsk> {
-        self.asks.iter().find(|ask| ask.hashrate_ph > 0.0)
+        self.asks
+            .iter()
+            .find(|ask| ask.remaining_hashrate_ph() > 0.0)
     }
 }
 
@@ -58,7 +61,17 @@ struct OrderbookAsk {
     #[serde(rename = "price_sat")]
     sats_per_eh_day: f64,
     #[serde(rename = "hashRateAvailable")]
-    hashrate_ph: f64,
+    limit_hashrate_ph: f64,
+    #[serde(rename = "hashRateMatched")]
+    used_hashrate_ph: f64,
+}
+
+impl OrderbookAsk {
+    // Braiins ask entries expose the configured limit in hashRateAvailable
+    // and the used portion in hashRateMatched, so remaining capacity is limit minus used
+    fn remaining_hashrate_ph(&self) -> f64 {
+        (self.limit_hashrate_ph - self.used_hashrate_ph).max(0.0)
+    }
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -118,24 +131,45 @@ mod tests {
     fn selects_first_ask_with_available_hash_for_default_price() {
         let orderbook: Orderbook = serde_json::from_value(serde_json::json!({
             "asks": [
-                { "price_sat": 44_000_000.0, "hashRateAvailable": 0.0 },
-                { "price_sat": 45_000_000.0, "hashRateAvailable": 1.5 },
-                { "price_sat": 46_000_000.0, "hashRateAvailable": 10.0 }
+                {
+                    "price_sat": 44_000_000.0,
+                    "hashRateAvailable": 70.99,
+                    "hashRateMatched": 70.99
+                },
+                {
+                    "price_sat": 45_000_000.0,
+                    "hashRateAvailable": 111.58,
+                    "hashRateMatched": 111.58
+                },
+                {
+                    "price_sat": 45_748_000.0,
+                    "hashRateAvailable": 248.39,
+                    "hashRateMatched": 201.98
+                }
             ]
         }))
         .expect("expected orderbook JSON to parse");
 
         assert_eq!(orderbook.top_ask_sats_per_eh_day(), Some(44_000_000.0));
-        assert_eq!(orderbook.default_ask_sats_per_eh_day(), Some(45_000_000.0));
-        assert_eq!(orderbook.default_ask_hashrate_ph(), Some(1.5));
+        assert_eq!(orderbook.top_ask_hashrate_ph(), Some(0.0));
+        assert_eq!(orderbook.default_ask_sats_per_eh_day(), Some(45_748_000.0));
+        assert_eq!(orderbook.default_ask_hashrate_ph(), Some(46.41));
     }
 
     #[test]
     fn returns_none_when_no_ask_has_available_hash() {
         let orderbook: Orderbook = serde_json::from_value(serde_json::json!({
             "asks": [
-                { "price_sat": 44_000_000.0, "hashRateAvailable": 0.0 },
-                { "price_sat": 45_000_000.0, "hashRateAvailable": 0.0 }
+                {
+                    "price_sat": 44_000_000.0,
+                    "hashRateAvailable": 70.99,
+                    "hashRateMatched": 70.99
+                },
+                {
+                    "price_sat": 45_000_000.0,
+                    "hashRateAvailable": 111.58,
+                    "hashRateMatched": 111.58
+                }
             ]
         }))
         .expect("expected orderbook JSON to parse");
