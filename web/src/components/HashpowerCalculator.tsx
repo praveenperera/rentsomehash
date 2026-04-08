@@ -458,6 +458,8 @@ function ResultsGrid({
     data.results.deltaPct < 0
       ? "Negative means the estimate returns less BTC than buying spot"
       : "Positive means the estimate returns more BTC than buying spot";
+  const totalBtcDelta = data.results.expectedMinedBtc - data.results.budgetBtc;
+  const totalUsdDelta = totalBtcDelta * data.market.btcUsd;
 
   return (
     <>
@@ -515,6 +517,28 @@ function ResultsGrid({
         }
         description={deltaDescription}
       />
+      <Card className="bg-card/86 md:col-span-2">
+        <CardHeader className="space-y-2">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+            {deltaPositive ? "Total gain" : "Total loss"}
+          </p>
+          <CardTitle className="text-2xl tracking-[-0.08em]">
+            Net rental result
+          </CardTitle>
+          <CardDescription className="text-sm">
+            USD value shown first using the current BTC/USD price, with the BTC
+            amount underneath
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CashflowItem
+            label={deltaPositive ? "Total gain" : "Total loss"}
+            usdValue={totalUsdDelta}
+            btcValue={totalBtcDelta}
+            positive={deltaPositive}
+          />
+        </CardContent>
+      </Card>
     </>
   );
 }
@@ -549,6 +573,42 @@ function MetricCard({
         {detail}
       </CardHeader>
     </Card>
+  );
+}
+
+function CashflowItem({
+  label,
+  usdValue,
+  btcValue,
+  positive,
+}: {
+  label: string;
+  usdValue: number;
+  btcValue: number;
+  positive: boolean;
+}) {
+  return (
+    <div className="space-y-1 border border-border/70 bg-background/50 p-3">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+        {label}
+      </p>
+      <p
+        className={cn(
+          "text-xl tracking-[-0.06em]",
+          positive ? "text-primary" : "text-destructive",
+        )}
+      >
+        {formatSignedUsd(usdValue)}
+      </p>
+      <p
+        className={cn(
+          "font-mono text-sm",
+          positive ? "text-primary/78" : "text-destructive/78",
+        )}
+      >
+        {formatSignedBtc(btcValue)} BTC
+      </p>
+    </div>
   );
 }
 
@@ -1248,6 +1308,25 @@ function formatBtc(value: number) {
     maximumFractionDigits: 8,
     minimumFractionDigits: 8,
   }).format(value);
+}
+
+function formatUsd(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    currency: "USD",
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 0,
+    style: "currency",
+  }).format(value);
+}
+
+function formatSignedUsd(value: number) {
+  const prefix = value >= 0 ? "+" : "-";
+  return `${prefix}${formatUsd(Math.abs(value))}`;
+}
+
+function formatSignedBtc(value: number) {
+  const prefix = value >= 0 ? "+" : "-";
+  return `${prefix}${formatBtc(Math.abs(value))}`;
 }
 
 function formatPercent(value: number) {
