@@ -34,10 +34,22 @@ impl Orderbook {
         self.top_ask().map(|ask| ask.sats_per_eh_day)
     }
 
+    pub(crate) fn default_ask_hashrate_ph(&self) -> Option<f64> {
+        self.lowest_available_ask().map(|ask| ask.hashrate_ph)
+    }
+
+    pub(crate) fn default_ask_sats_per_eh_day(&self) -> Option<f64> {
+        self.lowest_available_ask().map(|ask| ask.sats_per_eh_day)
+    }
+
     // the Braiins orderbook API returns asks sorted ascending by price_sat,
-    // so first() yields the best (cheapest) ask
+    // so first() yields the cheapest raw ask
     fn top_ask(&self) -> Option<&OrderbookAsk> {
         self.asks.first()
+    }
+
+    fn lowest_available_ask(&self) -> Option<&OrderbookAsk> {
+        self.asks.iter().find(|ask| ask.hashrate_ph > 0.0)
     }
 }
 
@@ -95,5 +107,40 @@ fn source(label: &str, url: &str) -> MarketSource {
     MarketSource {
         label: label.to_string(),
         url: url.to_string(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Orderbook;
+
+    #[test]
+    fn selects_first_ask_with_available_hash_for_default_price() {
+        let orderbook: Orderbook = serde_json::from_value(serde_json::json!({
+            "asks": [
+                { "price_sat": 44_000_000.0, "hashRateAvailable": 0.0 },
+                { "price_sat": 45_000_000.0, "hashRateAvailable": 1.5 },
+                { "price_sat": 46_000_000.0, "hashRateAvailable": 10.0 }
+            ]
+        }))
+        .expect("expected orderbook JSON to parse");
+
+        assert_eq!(orderbook.top_ask_sats_per_eh_day(), Some(44_000_000.0));
+        assert_eq!(orderbook.default_ask_sats_per_eh_day(), Some(45_000_000.0));
+        assert_eq!(orderbook.default_ask_hashrate_ph(), Some(1.5));
+    }
+
+    #[test]
+    fn returns_none_when_no_ask_has_available_hash() {
+        let orderbook: Orderbook = serde_json::from_value(serde_json::json!({
+            "asks": [
+                { "price_sat": 44_000_000.0, "hashRateAvailable": 0.0 },
+                { "price_sat": 45_000_000.0, "hashRateAvailable": 0.0 }
+            ]
+        }))
+        .expect("expected orderbook JSON to parse");
+
+        assert_eq!(orderbook.default_ask_sats_per_eh_day(), None);
+        assert_eq!(orderbook.default_ask_hashrate_ph(), None);
     }
 }

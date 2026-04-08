@@ -122,13 +122,13 @@ export function HashpowerCalculator() {
   const state = useMarketData(setPriceSatsPerPhDay);
 
   const marketData = state.data;
-  const braiinsBestAskPrice =
-    marketData?.market.bestAskSatsPerEhDay !== undefined
-      ? marketData.market.bestAskSatsPerEhDay / 1_000
+  const marketDefaultPrice =
+    marketData?.market.defaultPriceSatsPerEhDay !== undefined
+      ? marketData.market.defaultPriceSatsPerEhDay / 1_000
       : (marketData?.inputs.priceSatsPerPhDay ?? DEFAULT_PRICE_SATS_PER_PH_DAY);
   const displayedPrice = priceTouched
-    ? (priceSatsPerPhDay ?? braiinsBestAskPrice)
-    : braiinsBestAskPrice;
+    ? (priceSatsPerPhDay ?? marketDefaultPrice)
+    : marketDefaultPrice;
   const data = marketData
     ? calculateBrowserEstimate(marketData, {
         budgetUsd,
@@ -156,11 +156,12 @@ export function HashpowerCalculator() {
               Adjust the rental inputs
             </CardTitle>
             <CardDescription className="text-sm leading-7">
-              Hashpower price starts from the live Braiins best ask. If you edit
-              it, the calculator uses your custom sats/PH/day assumption.
-              Results are estimates based on current inputs, not a forecast.
-              Longer durations spread pool block variance across more expected
-              blocks.
+              Hashpower price starts from the lowest live Braiins ask with
+              available hash. If no ask currently has available hash, it falls
+              back to the Braiins last average price. If you edit it, the
+              calculator uses your custom sats/PH/day assumption. Results are
+              estimates based on current inputs, not a forecast. Longer
+              durations spread pool block variance across more expected blocks.
             </CardDescription>
           </CardHeader>
           <CalculatorControls
@@ -183,7 +184,7 @@ export function HashpowerCalculator() {
             }}
             onResetPrice={() => {
               setPriceTouched(false);
-              setPriceSatsPerPhDay(braiinsBestAskPrice);
+              setPriceSatsPerPhDay(marketDefaultPrice);
             }}
           />
         </Card>
@@ -340,8 +341,9 @@ function CalculatorControls({
       />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs leading-6 text-muted-foreground">
-          Price defaults to the current Braiins best ask. The spot comparison
-          uses the current BTC/USD price.
+          Price defaults to the lowest live Braiins ask with available hash,
+          otherwise the last average Braiins price. The spot comparison uses the
+          current BTC/USD price.
         </p>
         <Button
           type="button"
@@ -350,7 +352,7 @@ function CalculatorControls({
           disabled={!priceTouched}
           onClick={onResetPrice}
         >
-          Reset to best ask
+          Reset to default price
         </Button>
       </div>
     </CardContent>
@@ -972,6 +974,8 @@ const DEV_MARKET_DATA: HashpowerCalculatorResponse = {
     availableHashratePh: 12.4,
     topAskHashratePh: 4.8,
     topAskSatsPerEhDay: 45_062_000,
+    defaultPriceSatsPerEhDay: 45_062_000,
+    defaultAskHashratePh: 4.8,
     difficulty: 138_966_858_174_568.75,
     btcUsd: 68_513,
     marketStatus: "DEV_SNAPSHOT",
@@ -1117,11 +1121,11 @@ function localWarnings(
     },
   ];
 
-  if (exceedsTopAskLiquidity(market, inputs, results)) {
+  if (exceedsDefaultAskLiquidity(market, inputs, results)) {
     warnings.push({
       code: "LIQUIDITY",
       message:
-        "The requested hashrate exceeds top ask liquidity at the best-ask price, so the flat-price estimate may be too optimistic.",
+        "The requested hashrate exceeds the available hash at the default calculator price, so the flat-price estimate may be too optimistic.",
     });
   }
 
@@ -1152,18 +1156,18 @@ function modelWarning(market: MarketSnapshot) {
   return "Recent OCEAN block transaction-fee data is unavailable, so this estimate uses subsidy only, applies OCEAN's 1% DATUM pool fee, and ignores future difficulty changes, fee changes, bid slippage, exact OCEAN TIDES payout accounting, and mining variance.";
 }
 
-function exceedsTopAskLiquidity(
+function exceedsDefaultAskLiquidity(
   market: MarketSnapshot,
   inputs: CalculatorInputs,
   results: CalculatorResults,
 ) {
-  if (market.topAskHashratePh === null) {
+  if (market.defaultAskHashratePh === null) {
     return false;
   }
 
-  const defaultPrice = market.bestAskSatsPerEhDay / 1_000;
+  const defaultPrice = market.defaultPriceSatsPerEhDay / 1_000;
   return (
-    results.hashratePh > market.topAskHashratePh &&
+    results.hashratePh > market.defaultAskHashratePh &&
     Math.abs(inputs.priceSatsPerPhDay - defaultPrice) < 0.000_001
   );
 }

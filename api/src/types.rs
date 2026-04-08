@@ -31,6 +31,8 @@ pub struct MarketSnapshot {
     pub available_hashrate_ph: f64,
     pub top_ask_hashrate_ph: Option<f64>,
     pub top_ask_sats_per_eh_day: Option<f64>,
+    pub default_price_sats_per_eh_day: f64,
+    pub default_ask_hashrate_ph: Option<f64>,
     pub difficulty: f64,
     pub btc_usd: f64,
     pub market_status: String,

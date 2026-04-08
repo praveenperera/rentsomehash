@@ -29,7 +29,7 @@ impl QueryInput {
             duration_days: self.duration_days.unwrap_or(DEFAULT_DURATION_DAYS),
             price_sats_per_ph_day: self
                 .price_sats_per_ph_day
-                .unwrap_or(market.best_ask_sats_per_eh_day / 1_000.0),
+                .unwrap_or(market.default_price_sats_per_eh_day / 1_000.0),
         };
         validate_inputs(inputs)
     }
@@ -86,10 +86,10 @@ impl<'a> HashpowerCalculator<'a> {
             },
         ];
 
-        if self.exceeds_top_ask_liquidity(results) {
+        if self.exceeds_default_ask_liquidity(results) {
             warnings.push(CalculatorWarning {
                 code: WarningCode::Liquidity,
-                message: "The requested hashrate exceeds top ask liquidity at the best-ask price, so the flat-price estimate may be too optimistic.".to_string(),
+                message: "The requested hashrate exceeds the available hash at the default calculator price, so the flat-price estimate may be too optimistic.".to_string(),
             });
         }
 
@@ -149,16 +149,16 @@ impl<'a> HashpowerCalculator<'a> {
         "Recent OCEAN block transaction-fee data is unavailable, so this estimate uses subsidy only, applies OCEAN's 1% DATUM pool fee, and ignores future difficulty changes, fee changes, bid slippage, exact OCEAN TIDES payout accounting, and mining variance.".to_string()
     }
 
-    fn exceeds_top_ask_liquidity(&self, results: &CalculatorResults) -> bool {
-        let Some(top_ask_hashrate_ph) = self.market.top_ask_hashrate_ph else {
+    fn exceeds_default_ask_liquidity(&self, results: &CalculatorResults) -> bool {
+        let Some(default_ask_hashrate_ph) = self.market.default_ask_hashrate_ph else {
             return false;
         };
 
-        results.hashrate_ph > top_ask_hashrate_ph && self.selected_best_ask()
+        results.hashrate_ph > default_ask_hashrate_ph && self.selected_default_price()
     }
 
-    fn selected_best_ask(&self) -> bool {
-        let default_price = self.market.best_ask_sats_per_eh_day / 1_000.0;
+    fn selected_default_price(&self) -> bool {
+        let default_price = self.market.default_price_sats_per_eh_day / 1_000.0;
         (self.inputs.price_sats_per_ph_day - default_price).abs() < 0.000_001
     }
 }
@@ -253,6 +253,8 @@ mod tests {
             available_hashrate_ph: 1_000.0,
             top_ask_hashrate_ph: Some(10.0),
             top_ask_sats_per_eh_day: Some(44_981_000.0),
+            default_price_sats_per_eh_day: 44_981_000.0,
+            default_ask_hashrate_ph: Some(10.0),
             difficulty: 138_966_872_071_213.0,
             btc_usd: 68_724.0,
             market_status: "SPOT_INSTRUMENT_STATUS_ACTIVE".to_string(),
@@ -296,6 +298,19 @@ mod tests {
             .expect("expected valid default inputs");
 
         assert_eq!(inputs.duration_days, 30.0);
+    }
+
+    #[test]
+    fn defaults_to_market_default_price() {
+        let market = MarketSnapshot {
+            default_price_sats_per_eh_day: 47_995_796.0,
+            ..market()
+        };
+        let inputs = QueryInput::default()
+            .with_market_defaults(&market)
+            .expect("expected valid default inputs");
+
+        assert_eq!(inputs.price_sats_per_ph_day, 47_995.796);
     }
 
     #[test]
@@ -353,5 +368,45 @@ mod tests {
         );
         assert!(results.probability_at_least_one_ocean_block.unwrap() > 0.999);
         assert!(results.probability_at_least_two_ocean_blocks.unwrap() > 0.999);
+    }
+
+    #[test]
+    fn warns_when_requested_hashrate_exceeds_default_ask_liquidity() {
+        let market = MarketSnapshot {
+            default_ask_hashrate_ph: Some(0.9),
+            ..market()
+        };
+        let inputs = QueryInput::default()
+            .with_market_defaults(&market)
+            .expect("expected valid default inputs");
+        let calculator = HashpowerCalculator::new(&inputs, &market);
+        let warnings = calculator.warnings(&calculator.results());
+
+        assert!(
+            warnings
+                .iter()
+                .any(|warning| warning.code == WarningCode::Liquidity)
+        );
+    }
+
+    #[test]
+    fn skips_liquidity_warning_when_price_is_overridden() {
+        let market = MarketSnapshot {
+            default_ask_hashrate_ph: Some(0.9),
+            ..market()
+        };
+        let inputs = CalculatorInputs {
+            budget_usd: 1_000.0,
+            duration_days: 30.0,
+            price_sats_per_ph_day: 50_000.0,
+        };
+        let calculator = HashpowerCalculator::new(&inputs, &market);
+        let warnings = calculator.warnings(&calculator.results());
+
+        assert!(
+            !warnings
+                .iter()
+                .any(|warning| warning.code == WarningCode::Liquidity)
+        );
     }
 }

@@ -60,13 +60,16 @@ check-types:
 update:
     {{ node }} zsh -lc 'cd web && npm update'
 
-# deploy to cloudflare workers
-deploy: build
+# deploy frontend worker to cloudflare
+deploy-fe: build
     {{ node }} zsh -lc 'cd web && npx --yes wrangler deploy'
 
 # deploy calculator api to cloudflare workers
 deploy-api: bundle-api
     {{ node }} zsh -lc 'cd web && npx --yes wrangler deploy --config ../api/wrangler.toml'
+
+# deploy frontend and api to cloudflare
+deploy: deploy-fe deploy-api
 
 # deploy preview to cloudflare workers (optional: just preview <subdomain>)
 preview subdomain="": build

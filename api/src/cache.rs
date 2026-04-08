@@ -305,6 +305,8 @@ mod tests {
             available_hashrate_ph: 1_000.0,
             top_ask_hashrate_ph: Some(10.0),
             top_ask_sats_per_eh_day: Some(44_981_000.0),
+            default_price_sats_per_eh_day: 44_981_000.0,
+            default_ask_hashrate_ph: Some(10.0),
             difficulty: 138_966_872_071_213.0,
             btc_usd: 68_724.0,
             market_status: "SPOT_INSTRUMENT_STATUS_ACTIVE".to_string(),

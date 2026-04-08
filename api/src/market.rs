@@ -43,6 +43,8 @@ impl MarketClient {
         let ocean_timing = ocean_timing
             .inspect_err(|e| worker::console_log!("OCEAN timing fetch failed: {e}"))
             .ok();
+        let (default_price_sats_per_eh_day, default_ask_hashrate_ph) =
+            default_orderbook_price(orderbook.as_ref(), spot.last_avg_sats_per_eh_day);
 
         MarketSnapshot {
             best_ask_sats_per_eh_day: spot.best_ask_sats_per_eh_day,
@@ -54,6 +56,8 @@ impl MarketClient {
             top_ask_sats_per_eh_day: orderbook
                 .as_ref()
                 .and_then(braiins::Orderbook::top_ask_sats_per_eh_day),
+            default_price_sats_per_eh_day,
+            default_ask_hashrate_ph,
             difficulty: difficulty.difficulty,
             btc_usd: btc_price.price,
             market_status: spot.status,
@@ -72,6 +76,20 @@ impl MarketClient {
         }
         .validate()
     }
+}
+
+fn default_orderbook_price(
+    orderbook: Option<&braiins::Orderbook>,
+    last_avg_sats_per_eh_day: f64,
+) -> (f64, Option<f64>) {
+    let default_ask_sats_per_eh_day =
+        orderbook.and_then(braiins::Orderbook::default_ask_sats_per_eh_day);
+    let default_ask_hashrate_ph = orderbook.and_then(braiins::Orderbook::default_ask_hashrate_ph);
+
+    (
+        default_ask_sats_per_eh_day.unwrap_or(last_avg_sats_per_eh_day),
+        default_ask_hashrate_ph,
+    )
 }
 
 async fn fetch_json<T>(url: &str) -> Result<T, String>
@@ -104,4 +122,43 @@ fn market_sources() -> Vec<MarketSource> {
         ocean::blocks_found_source(),
         ocean::mempool_block_summary_source(),
     ]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{braiins::Orderbook, default_orderbook_price};
+
+    #[test]
+    fn falls_back_to_last_average_price_when_no_ask_has_available_hash() {
+        let orderbook: Orderbook = serde_json::from_value(serde_json::json!({
+            "asks": [
+                { "price_sat": 44_000_000.0, "hashRateAvailable": 0.0 },
+                { "price_sat": 45_000_000.0, "hashRateAvailable": 0.0 }
+            ]
+        }))
+        .expect("expected orderbook JSON to parse");
+
+        let (default_price_sats_per_eh_day, default_ask_hashrate_ph) =
+            default_orderbook_price(Some(&orderbook), 49_000_000.0);
+
+        assert_eq!(default_price_sats_per_eh_day, 49_000_000.0);
+        assert_eq!(default_ask_hashrate_ph, None);
+    }
+
+    #[test]
+    fn uses_lowest_available_ask_when_present() {
+        let orderbook: Orderbook = serde_json::from_value(serde_json::json!({
+            "asks": [
+                { "price_sat": 44_000_000.0, "hashRateAvailable": 0.0 },
+                { "price_sat": 45_000_000.0, "hashRateAvailable": 2.5 }
+            ]
+        }))
+        .expect("expected orderbook JSON to parse");
+
+        let (default_price_sats_per_eh_day, default_ask_hashrate_ph) =
+            default_orderbook_price(Some(&orderbook), 49_000_000.0);
+
+        assert_eq!(default_price_sats_per_eh_day, 45_000_000.0);
+        assert_eq!(default_ask_hashrate_ph, Some(2.5));
+    }
 }

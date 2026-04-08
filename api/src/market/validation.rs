@@ -35,6 +35,18 @@ impl MarketSnapshotValidator {
         )?;
 
         self.validate_metric(
+            MarketMetric::DefaultPriceSatsPerEhDay,
+            self.0.default_price_sats_per_eh_day,
+            MetricBound::Positive,
+        )?;
+
+        self.validate_optional_metric(
+            MarketMetric::DefaultAskHashratePh,
+            self.0.default_ask_hashrate_ph,
+            MetricBound::NonNegative,
+        )?;
+
+        self.validate_metric(
             MarketMetric::Difficulty,
             self.0.difficulty,
             MetricBound::Positive,
@@ -97,6 +109,8 @@ enum MarketMetric {
     AvailableHashratePh,
     TopAskHashratePh,
     TopAskSatsPerEhDay,
+    DefaultPriceSatsPerEhDay,
+    DefaultAskHashratePh,
     Difficulty,
     BtcUsd,
     OceanHashrateEh,
@@ -112,6 +126,8 @@ impl MarketMetric {
             Self::AvailableHashratePh => "available_hashrate_ph",
             Self::TopAskHashratePh => "top_ask_hashrate_ph",
             Self::TopAskSatsPerEhDay => "top_ask_sats_per_eh_day",
+            Self::DefaultPriceSatsPerEhDay => "default_price_sats_per_eh_day",
+            Self::DefaultAskHashratePh => "default_ask_hashrate_ph",
             Self::Difficulty => "difficulty",
             Self::BtcUsd => "btc_usd",
             Self::OceanHashrateEh => "ocean_hashrate_eh",
@@ -166,6 +182,8 @@ mod tests {
             available_hashrate_ph: 1_000.0,
             top_ask_hashrate_ph: Some(10.0),
             top_ask_sats_per_eh_day: Some(44_981_000.0),
+            default_price_sats_per_eh_day: 44_981_000.0,
+            default_ask_hashrate_ph: Some(10.0),
             difficulty: 138_966_872_071_213.0,
             btc_usd: 68_724.0,
             market_status: "SPOT_INSTRUMENT_STATUS_ACTIVE".to_string(),
@@ -183,6 +201,7 @@ mod tests {
         let market = MarketSnapshot {
             top_ask_hashrate_ph: None,
             top_ask_sats_per_eh_day: None,
+            default_ask_hashrate_ph: None,
             ..market_snapshot()
         };
 
