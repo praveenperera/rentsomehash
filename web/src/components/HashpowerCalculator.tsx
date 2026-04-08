@@ -526,8 +526,7 @@ function ResultsGrid({
             Net rental result
           </CardTitle>
           <CardDescription className="text-sm">
-            USD value shown first using the current BTC/USD price, with the BTC
-            amount underneath
+            Based on the current BTC/USD price
           </CardDescription>
         </CardHeader>
         <CardContent>
