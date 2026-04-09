@@ -7,7 +7,7 @@ const BLOCK_SUBSIDY_BTC: f64 = 3.125;
 const OCEAN_DATUM_POOL_FEE_RATE: f64 = 0.01;
 const DEFAULT_DURATION_DAYS: f64 = 30.0;
 const MIN_DURATION_DAYS: f64 = 7.0;
-const MAX_DURATION_DAYS: f64 = 1000.0;
+const MAX_DURATION_DAYS: f64 = 5000.0;
 const SECONDS_PER_DAY: f64 = 86_400.0;
 const HASHES_PER_EH: f64 = 1_000_000_000_000_000_000.0;
 const MAX_U32_TARGET: f64 = 4_294_967_296.0;
@@ -206,7 +206,7 @@ impl InputValidator {
             self.inputs.duration_days,
             MIN_DURATION_DAYS,
             MAX_DURATION_DAYS,
-            "Duration must be between 7 and 1000 days",
+            "Duration must be between 7 and 5000 days",
         );
         self.validate_range(
             CalculatorInputField::PriceSatsPerPhDay,

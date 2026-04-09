@@ -1,7 +1,5 @@
 import * as React from "react";
 import {
-  ArrowDownIcon,
-  ArrowUpIcon,
   CalculatorIcon,
   QuestionIcon,
   WarningIcon,
@@ -42,9 +40,15 @@ import { cn } from "@/lib/utils";
 const DEFAULT_BUDGET_USD = 1_000;
 const DEFAULT_DURATION_DAYS = 30;
 const DEFAULT_PRICE_SATS_PER_PH_DAY = 44_000;
+const DEFAULT_TARGET_HASHRATE_PH = 1;
 const MIN_DURATION_DAYS = 7;
-const MAX_DURATION_DAYS = 360;
+const MAX_DURATION_SLIDER_DAYS = 360;
+const MAX_DURATION_DAYS = 5_000;
+const MIN_BUDGET_USD = 100;
 const MAX_BUDGET_USD = 100_000;
+const BUDGET_STEP_USD = 50;
+const MIN_HASHRATE_PH = 0.1;
+const HASHRATE_STEP_PH = 0.1;
 const BRAIINS_PRICE_STEP = 10;
 const BLOCK_SUBSIDY_BTC = 3.125;
 const OCEAN_DATUM_POOL_FEE_RATE = 0.01;
@@ -89,7 +93,7 @@ const FAQ_ITEMS = [
   {
     question: "Why compare against buying spot BTC?",
     answer:
-      "Buying spot is the clean baseline for the same budget. The calculator shows whether the current rental assumptions are expected to return more or less BTC than simply buying bitcoin outright.",
+      "Buying spot is the clean baseline for the same capital. The calculator shows whether the current rental assumptions are expected to return more or less BTC than simply buying bitcoin outright.",
   },
 ] as const;
 const DEFAULT_FAQ_ITEM_ID = faqItemId(FAQ_ITEMS[0].question);
@@ -112,8 +116,14 @@ type StoredMarketData = {
   savedAt: number;
 };
 
+type SizingMode = "budget" | "speed";
+
 export function HashpowerCalculator() {
+  const [sizingMode, setSizingMode] = React.useState<SizingMode>("budget");
   const [budgetUsd, setBudgetUsd] = React.useState(DEFAULT_BUDGET_USD);
+  const [targetHashratePh, setTargetHashratePh] = React.useState(
+    DEFAULT_TARGET_HASHRATE_PH,
+  );
   const [durationDays, setDurationDays] = React.useState(DEFAULT_DURATION_DAYS);
   const [priceSatsPerPhDay, setPriceSatsPerPhDay] = React.useState<
     number | null
@@ -129,15 +139,31 @@ export function HashpowerCalculator() {
   const displayedPrice = priceTouched
     ? (priceSatsPerPhDay ?? marketDefaultPrice)
     : marketDefaultPrice;
+  const effectiveBudgetUsd =
+    sizingMode === "speed"
+      ? calculateBudgetUsdForHashrate(
+          marketData?.market ?? null,
+          targetHashratePh,
+          durationDays,
+          displayedPrice,
+        )
+      : budgetUsd;
+  const calculatorInputs: CalculatorInputs = {
+    budgetUsd: effectiveBudgetUsd,
+    durationDays,
+    priceSatsPerPhDay: displayedPrice,
+  };
   const data = marketData
-    ? calculateBrowserEstimate(marketData, {
-        budgetUsd,
-        durationDays,
-        priceSatsPerPhDay: displayedPrice,
-      })
+    ? calculateBrowserEstimate(marketData, calculatorInputs)
     : null;
   const isLoading = state.status === "loading";
+  const budgetSlider = budgetSliderRange();
   const priceSlider = priceSliderRange(displayedPrice);
+  const hashrateSlider = hashrateSliderRange(
+    marketData?.market ?? null,
+    durationDays,
+    displayedPrice,
+  );
 
   return (
     <div className="space-y-4">
@@ -156,31 +182,57 @@ export function HashpowerCalculator() {
               Adjust the rental inputs
             </CardTitle>
             <CardDescription className="text-sm leading-7">
-              Hashpower price starts from the lowest live Braiins ask with
-              available hash. If no ask currently has available hash, it falls
-              back to the Braiins last average price. If you edit it, the
-              calculator uses your custom sats/PH/day assumption. Results are
-              estimates based on current inputs, not a forecast. Longer
-              durations spread pool block variance across more expected blocks.
+              Size the rental by capital or by target speed. Hashpower price
+              starts from the lowest live Braiins ask with available hash. If no
+              ask currently has available hash, it falls back to the Braiins
+              last average price. If you edit it, the calculator uses your
+              custom sats/PH/day assumption. Results are estimates based on
+              current inputs, not a forecast. Longer durations spread pool block
+              variance across more expected blocks.
             </CardDescription>
           </CardHeader>
           <CalculatorControls
+            sizingMode={sizingMode}
             budgetUsd={budgetUsd}
+            targetHashratePh={targetHashratePh}
             displayedPrice={displayedPrice}
             durationDays={durationDays}
             priceTouched={priceTouched}
+            budgetSlider={budgetSlider}
             priceSlider={priceSlider}
+            hashrateSlider={hashrateSlider}
+            derivedBudgetUsd={data?.inputs.budgetUsd ?? effectiveBudgetUsd}
+            derivedHashratePh={data?.results.hashratePh ?? null}
+            hasLiveMarketData={marketData !== null}
+            onSizingModeChange={(mode) => {
+              if (mode === sizingMode) {
+                return;
+              }
+
+              if (mode === "speed") {
+                setTargetHashratePh(
+                  normalizeHashratePh(
+                    data?.results.hashratePh ?? targetHashratePh,
+                  ),
+                );
+              } else if (data) {
+                setBudgetUsd(data.inputs.budgetUsd);
+              }
+
+              setSizingMode(mode);
+            }}
             onBudgetChange={(value) =>
-              setBudgetUsd(clamp(value, 100, MAX_BUDGET_USD))
+              normalizeAndSetBudgetUsd(setBudgetUsd, value)
+            }
+            onTargetHashrateChange={(value) =>
+              normalizeAndSetHashratePh(setTargetHashratePh, value)
             }
             onDurationChange={(value) =>
-              setDurationDays(
-                clamp(value, MIN_DURATION_DAYS, MAX_DURATION_DAYS),
-              )
+              normalizeAndSetDurationDays(setDurationDays, value)
             }
             onPriceChange={(value) => {
               setPriceTouched(true);
-              setPriceSatsPerPhDay(value);
+              return normalizeAndSetPrice(setPriceSatsPerPhDay, value);
             }}
             onResetPrice={() => {
               setPriceTouched(false);
@@ -191,7 +243,11 @@ export function HashpowerCalculator() {
 
         {data ? (
           <div className="grid gap-4 md:grid-cols-2">
-            <ResultsGrid data={data} priceModified={priceTouched} />
+            <ResultsGrid
+              data={data}
+              priceModified={priceTouched}
+              displayedPrice={displayedPrice}
+            />
           </div>
         ) : isLoading ? (
           <Card className="bg-card/86 h-full">
@@ -288,43 +344,105 @@ function useMarketData(setDefaultPrice: (value: number) => void) {
 }
 
 function CalculatorControls({
+  sizingMode,
   budgetUsd,
+  targetHashratePh,
   displayedPrice,
   durationDays,
   priceTouched,
+  budgetSlider,
   priceSlider,
+  hashrateSlider,
+  derivedBudgetUsd,
+  derivedHashratePh,
+  hasLiveMarketData,
+  onSizingModeChange,
   onBudgetChange,
+  onTargetHashrateChange,
   onDurationChange,
   onPriceChange,
   onResetPrice,
 }: {
+  sizingMode: SizingMode;
   budgetUsd: number;
+  targetHashratePh: number;
   displayedPrice: number;
   durationDays: number;
   priceTouched: boolean;
+  budgetSlider: { min: number; max: number };
   priceSlider: { min: number; max: number };
-  onBudgetChange: (value: number) => void;
-  onDurationChange: (value: number) => void;
-  onPriceChange: (value: number) => void;
+  hashrateSlider: { min: number; max: number };
+  derivedBudgetUsd: number;
+  derivedHashratePh: number | null;
+  hasLiveMarketData: boolean;
+  onSizingModeChange: (mode: SizingMode) => void;
+  onBudgetChange: (value: number) => number;
+  onTargetHashrateChange: (value: number) => number;
+  onDurationChange: (value: number) => number;
+  onPriceChange: (value: number) => number;
   onResetPrice: () => void;
 }) {
   return (
     <CardContent className="space-y-6">
-      <NumberSlider
-        label="Budget"
-        value={budgetUsd}
-        min={100}
-        max={MAX_BUDGET_USD}
-        step={50}
-        suffix="USD"
-        prefix="$"
-        onChange={onBudgetChange}
-      />
+      <div className="space-y-3">
+        <div className="inline-flex border border-border/70 bg-background/60 p-1">
+          <Button
+            type="button"
+            size="sm"
+            variant={sizingMode === "budget" ? "default" : "ghost"}
+            onClick={() => onSizingModeChange("budget")}
+          >
+            Capital
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={sizingMode === "speed" ? "default" : "ghost"}
+            onClick={() => onSizingModeChange("speed")}
+          >
+            Speed
+          </Button>
+        </div>
+        {sizingMode === "budget" ? (
+          <NumberSlider
+            label="Capital"
+            value={budgetUsd}
+            min={budgetSlider.min}
+            max={budgetSlider.max}
+            step={BUDGET_STEP_USD}
+            suffix="USD"
+            prefix="$"
+            detailLabel="Estimated speed"
+            detailValue={
+              derivedHashratePh === null
+                ? "Loading live market data"
+                : `${formatNumber(derivedHashratePh, 2)} PH/s`
+            }
+            onChange={onBudgetChange}
+          />
+        ) : (
+          <NumberSlider
+            label="Target speed"
+            value={targetHashratePh}
+            min={hashrateSlider.min}
+            max={hashrateSlider.max}
+            step={HASHRATE_STEP_PH}
+            suffix="PH/s"
+            detailLabel="Required capital"
+            detailValue={
+              hasLiveMarketData
+                ? formatUsd(derivedBudgetUsd)
+                : "Loading live market data"
+            }
+            onChange={onTargetHashrateChange}
+          />
+        )}
+      </div>
       <NumberSlider
         label="Duration"
         value={durationDays}
         min={MIN_DURATION_DAYS}
-        max={MAX_DURATION_DAYS}
+        max={MAX_DURATION_SLIDER_DAYS}
         step={1}
         suffix="days"
         onChange={onDurationChange}
@@ -387,6 +505,8 @@ function NumberSlider({
   suffix,
   prefix = "",
   modified = false,
+  detailLabel,
+  detailValue,
   onChange,
 }: {
   label: string;
@@ -397,8 +517,30 @@ function NumberSlider({
   suffix: string;
   prefix?: string;
   modified?: boolean;
-  onChange: (value: number) => void;
+  detailLabel?: string;
+  detailValue?: string;
+  onChange: (value: number) => number;
 }) {
+  const [draftValue, setDraftValue] = React.useState(() =>
+    formatInputValue(value),
+  );
+
+  React.useEffect(() => {
+    setDraftValue(formatInputValue(value));
+  }, [value]);
+
+  function commitDraftValue() {
+    const parsed = Number.parseFloat(draftValue);
+
+    if (!draftValue.trim() || !Number.isFinite(parsed)) {
+      setDraftValue(formatInputValue(value));
+      return;
+    }
+
+    const nextValue = onChange(parsed);
+    setDraftValue(formatInputValue(nextValue));
+  }
+
   return (
     <label
       className={cn(
@@ -419,18 +561,16 @@ function NumberSlider({
         </div>
         <Input
           type="number"
-          value={Number.isFinite(value) ? value : 0}
+          value={draftValue}
           min={min}
           max={Math.max(max, value)}
           step={step}
-          onChange={(event) => {
-            const nextValue = event.currentTarget.value;
-            const parsed = Number.parseFloat(nextValue);
-            if (!nextValue.trim() || !Number.isFinite(parsed)) {
-              return;
+          onChange={(event) => setDraftValue(event.currentTarget.value)}
+          onBlur={commitDraftValue}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.currentTarget.blur();
             }
-
-            onChange(parsed);
           }}
           className="w-36 pr-1.5 text-right font-mono [&::-webkit-inner-spin-button]:ml-2"
         />
@@ -442,6 +582,16 @@ function NumberSlider({
         step={step}
         onValueChange={(nextValue) => onChange(sliderValue(nextValue, value))}
       />
+      {detailLabel && detailValue ? (
+        <div className="flex items-center justify-between gap-3 border-t border-border/70 pt-3">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/80">
+            {detailLabel}
+          </span>
+          <span className="font-mono text-xs text-foreground/62">
+            {detailValue}
+          </span>
+        </div>
+      ) : null}
     </label>
   );
 }
@@ -449,24 +599,33 @@ function NumberSlider({
 function ResultsGrid({
   data,
   priceModified,
+  displayedPrice,
 }: {
   data: HashpowerCalculatorResponse;
   priceModified: boolean;
+  displayedPrice: number;
 }) {
   const deltaPositive = data.results.deltaPct >= 0;
-  const deltaDescription =
-    data.results.deltaPct < 0
-      ? "Negative means the estimate returns less BTC than buying spot"
-      : "Positive means the estimate returns more BTC than buying spot";
   const totalBtcDelta = data.results.expectedMinedBtc - data.results.budgetBtc;
   const totalUsdDelta = totalBtcDelta * data.market.btcUsd;
+  const perDayUsdDelta = totalUsdDelta / data.inputs.durationDays;
 
   return (
     <>
       <MetricCard
-        eyebrow="Rented speed"
+        eyebrow="Rental plan"
         title={`${formatNumber(data.results.hashratePh, 2)} PH/s`}
-        description={`${formatNumber(data.results.hashrateEh, 5)} EH/s for ${formatNumber(data.inputs.durationDays, 0)} days`}
+        description={`${formatUsd(data.inputs.budgetUsd)} capital over ${formatNumber(data.inputs.durationDays, 0)} days`}
+        detail={
+          <div className="mt-2 border-t border-border/70 pt-3">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+              Braiins price
+            </p>
+            <p className="font-mono text-sm text-foreground/78">
+              {formatNumber(displayedPrice, 0)} sats/PH/day
+            </p>
+          </div>
+        }
       />
       <MetricCard
         eyebrow="Expected mined"
@@ -495,48 +654,89 @@ function ResultsGrid({
       <MetricCard
         eyebrow="Buying spot"
         title={`${formatBtc(data.results.buyBtc)} BTC`}
-        description={`At $${formatNumber(data.market.btcUsd, 0)} per BTC`}
+        description={`Cost difference versus buying spot BTC instead`}
+        modified={priceModified}
+        detail={
+          <div className="mt-2 space-y-3 border-t border-border/70 pt-3">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                Spot price
+              </p>
+              <p className="font-mono text-sm text-foreground/78">
+                ${formatNumber(data.market.btcUsd, 0)} per BTC
+              </p>
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                Difference
+              </p>
+              <p
+                className={cn(
+                  "text-xl tracking-[-0.06em]",
+                  deltaPositive ? "text-primary" : "text-destructive",
+                )}
+              >
+                {formatSignedPercent(data.results.deltaPct)}
+              </p>
+            </div>
+          </div>
+        }
       />
       <MetricCard
-        eyebrow="Expected difference"
+        eyebrow={deltaPositive ? "Total profit" : "Total cost"}
         modified={priceModified}
         title={
           <span
-            className={cn(
-              "inline-flex items-center gap-2",
-              deltaPositive ? "text-primary" : "text-destructive",
-            )}
+            className={cn(deltaPositive ? "text-primary" : "text-destructive")}
           >
-            {deltaPositive ? (
-              <ArrowUpIcon className="size-5" aria-hidden="true" />
-            ) : (
-              <ArrowDownIcon className="size-5" aria-hidden="true" />
-            )}
-            {formatSignedPercent(data.results.deltaPct)}
+            {formatSignedUsd(totalUsdDelta)}
           </span>
         }
-        description={deltaDescription}
+        description={
+          deltaPositive ? (
+            <>
+              Net profit while controlling{" "}
+              <strong>{formatNumber(data.results.hashratePh, 2)} PH/s</strong>{" "}
+              for{" "}
+              <strong>{formatNumber(data.inputs.durationDays, 0)} days</strong>
+            </>
+          ) : (
+            <>
+              How much it costs to control{" "}
+              <strong>{formatNumber(data.results.hashratePh, 2)} PH/s</strong>{" "}
+              for{" "}
+              <strong>{formatNumber(data.inputs.durationDays, 0)} days</strong>
+            </>
+          )
+        }
         detail={
-          <div className="mt-2 border-t border-border/70 pt-3">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              {deltaPositive ? "Total gain" : "Total loss"}
-            </p>
-            <p
-              className={cn(
-                "text-xl tracking-[-0.06em]",
-                deltaPositive ? "text-primary" : "text-destructive",
-              )}
-            >
-              {formatSignedUsd(totalUsdDelta)}
-            </p>
-            <p
-              className={cn(
-                "font-mono text-sm",
-                deltaPositive ? "text-primary/78" : "text-destructive/78",
-              )}
-            >
-              {formatSignedBtc(totalBtcDelta)} BTC
-            </p>
+          <div className="mt-2 space-y-3 border-t border-border/70 pt-3">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                Per day
+              </p>
+              <p
+                className={cn(
+                  "font-mono text-sm",
+                  deltaPositive ? "text-primary/78" : "text-destructive/78",
+                )}
+              >
+                {formatSignedUsd(perDayUsdDelta)} / day
+              </p>
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                BTC difference
+              </p>
+              <p
+                className={cn(
+                  "font-mono text-sm",
+                  deltaPositive ? "text-primary/78" : "text-destructive/78",
+                )}
+              >
+                {formatSignedBtc(totalBtcDelta)} BTC
+              </p>
+            </div>
           </div>
         }
       />
@@ -553,7 +753,7 @@ function MetricCard({
 }: {
   eyebrow: string;
   title: React.ReactNode;
-  description: React.ReactNode;
+  description?: React.ReactNode;
   modified?: boolean;
   detail?: React.ReactNode;
 }) {
@@ -570,7 +770,9 @@ function MetricCard({
           {eyebrow}
         </p>
         <CardTitle className="text-2xl tracking-[-0.08em]">{title}</CardTitle>
-        <CardDescription className="text-sm">{description}</CardDescription>
+        {description ? (
+          <CardDescription className="text-sm">{description}</CardDescription>
+        ) : null}
         {detail}
       </CardHeader>
     </Card>
@@ -1230,6 +1432,96 @@ function priceSliderRange(price: number) {
   );
 
   return { min: snappedMin, max: snappedMax };
+}
+
+function budgetSliderRange() {
+  return { min: MIN_BUDGET_USD, max: MAX_BUDGET_USD };
+}
+
+function hashrateSliderRange(
+  market: MarketSnapshot | null,
+  durationDays: number,
+  priceSatsPerPhDay: number,
+) {
+  if (!market) {
+    return { min: MIN_HASHRATE_PH, max: DEFAULT_TARGET_HASHRATE_PH };
+  }
+
+  const budgetBtc = MAX_BUDGET_USD / market.btcUsd;
+  const priceBtcPerEhDay = (priceSatsPerPhDay * 1_000) / 100_000_000;
+  const hashrateEh = budgetBtc / (priceBtcPerEhDay * durationDays);
+  const hashratePh = hashrateEh * 1_000;
+  const snappedMax = Math.max(
+    MIN_HASHRATE_PH,
+    Math.floor(hashratePh / HASHRATE_STEP_PH) * HASHRATE_STEP_PH,
+  );
+
+  return { min: MIN_HASHRATE_PH, max: snappedMax };
+}
+
+function calculateBudgetUsdForHashrate(
+  market: MarketSnapshot | null,
+  hashratePh: number,
+  durationDays: number,
+  priceSatsPerPhDay: number,
+) {
+  if (!market) {
+    return DEFAULT_BUDGET_USD;
+  }
+
+  return (
+    ((hashratePh * durationDays * priceSatsPerPhDay) / 100_000_000) *
+    market.btcUsd
+  );
+}
+
+function normalizeBudgetUsd(value: number) {
+  const normalized = Math.floor(value / BUDGET_STEP_USD) * BUDGET_STEP_USD;
+  return clamp(normalized, MIN_BUDGET_USD, Number.MAX_SAFE_INTEGER);
+}
+
+function normalizeHashratePh(value: number) {
+  const normalized = Math.floor(value * 100) / 100;
+  return clamp(normalized, MIN_HASHRATE_PH, Number.MAX_SAFE_INTEGER);
+}
+
+function normalizeAndSetBudgetUsd(
+  setBudgetUsd: React.Dispatch<React.SetStateAction<number>>,
+  value: number,
+) {
+  const normalized = normalizeBudgetUsd(value);
+  setBudgetUsd(normalized);
+  return normalized;
+}
+
+function normalizeAndSetHashratePh(
+  setTargetHashratePh: React.Dispatch<React.SetStateAction<number>>,
+  value: number,
+) {
+  const normalized = normalizeHashratePh(value);
+  setTargetHashratePh(normalized);
+  return normalized;
+}
+
+function normalizeAndSetDurationDays(
+  setDurationDays: React.Dispatch<React.SetStateAction<number>>,
+  value: number,
+) {
+  const normalized = clamp(value, MIN_DURATION_DAYS, MAX_DURATION_DAYS);
+  setDurationDays(normalized);
+  return normalized;
+}
+
+function normalizeAndSetPrice(
+  setPriceSatsPerPhDay: React.Dispatch<React.SetStateAction<number | null>>,
+  value: number,
+) {
+  setPriceSatsPerPhDay(value);
+  return value;
+}
+
+function formatInputValue(value: number) {
+  return Number.isFinite(value) ? value.toString() : "";
 }
 
 function sliderValue(value: number | readonly number[], fallback: number) {
