@@ -217,7 +217,7 @@ export function HashpowerCalculator() {
                   ),
                 );
               } else if (data) {
-                setBudgetUsd(data.inputs.budgetUsd);
+                setBudgetUsd(roundToTwoDecimals(data.inputs.budgetUsd));
               }
 
               setSizingMode(mode);
@@ -661,7 +661,16 @@ function ResultsGrid({
       <MetricCard
         eyebrow="Rental plan"
         title={`${formatNumber(data.results.hashratePh, 2)} PH/s`}
-        description={`${formatUsd(data.inputs.budgetUsd)} capital over ${formatNumber(data.inputs.durationDays, 0)} days`}
+        description={
+          <>
+            {formatUsd(data.inputs.budgetUsd)} capital over{" "}
+            {formatNumber(data.inputs.durationDays, 0)} days
+            <br />
+            <span className="font-mono text-xs text-foreground/62">
+              {formatBtc(data.results.budgetBtc)} BTC needed
+            </span>
+          </>
+        }
         detail={
           <div className="mt-2 border-t border-border/70 pt-3">
             <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
@@ -1578,6 +1587,10 @@ function identity(value: number) {
   return value;
 }
 
+function roundToTwoDecimals(value: number) {
+  return Math.round(value * 100) / 100;
+}
+
 function sliderValue(value: number | readonly number[], fallback: number) {
   if (Array.isArray(value)) {
     return value[0] ?? fallback;
@@ -1625,7 +1638,7 @@ function formatUsd(value: number) {
   return new Intl.NumberFormat("en-US", {
     currency: "USD",
     maximumFractionDigits: 2,
-    minimumFractionDigits: 0,
+    minimumFractionDigits: 2,
     style: "currency",
   }).format(value);
 }
