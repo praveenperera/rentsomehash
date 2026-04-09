@@ -91,7 +91,7 @@ const FAQ_ITEMS = [
   {
     question: "How are average transaction fees calculated?",
     answer:
-      "We grab up to 12 recent OCEAN blocks and pull the fee data from mempool.space for each. Add up the fees per block, take the average, then add that to the 312,500,000 SATS subsidy. Then we knock off 1% for OCEAN's DATUM fee. No fee data available? We fall back to subsidy-only.",
+      "We grab up to 12 recent OCEAN blocks and pull the fee data from mempool.space for each. Add up the fees per block, take the average, then add that to the 3.125 BTC subsidy. Then we knock off 1% for OCEAN's DATUM fee. No fee data available? We fall back to subsidy-only.",
   },
   {
     question: "Why compare against buying spot bitcoin?",
