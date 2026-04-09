@@ -68,6 +68,7 @@ function TooltipTrigger({
   return (
     <TooltipPrimitive.Trigger
       data-slot="tooltip-trigger"
+      closeOnClick={!tooltip?.touchMode}
       delay={delay}
       className={cn(
         "inline-flex min-h-6 min-w-6 touch-manipulation items-center justify-center rounded-none p-1 outline-none focus-visible:ring-1 focus-visible:ring-ring/50",
