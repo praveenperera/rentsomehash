@@ -3,21 +3,85 @@ import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
 
 import { cn } from "@/lib/utils";
 
-const Tooltip = TooltipPrimitive.Root;
+type TooltipContextValue = {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  touchMode: boolean;
+};
+
+const TooltipContext = React.createContext<TooltipContextValue | null>(null);
+
+function Tooltip({
+  children,
+  defaultOpen = false,
+  onOpenChange,
+  open,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Root>) {
+  const touchMode = useTouchTooltipMode();
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen);
+  const resolvedOpen = open ?? uncontrolledOpen;
+
+  function handleOpenChange(
+    nextOpen: boolean,
+    eventDetails: Parameters<NonNullable<typeof onOpenChange>>[1],
+  ) {
+    if (open === undefined) {
+      setUncontrolledOpen(nextOpen);
+    }
+
+    onOpenChange?.(nextOpen, eventDetails);
+  }
+
+  return (
+    <TooltipContext.Provider
+      value={{
+        open: resolvedOpen,
+        setOpen: (nextOpen: boolean) => {
+          if (open === undefined) {
+            setUncontrolledOpen(nextOpen);
+          }
+        },
+        touchMode,
+      }}
+    >
+      <TooltipPrimitive.Root
+        defaultOpen={touchMode ? undefined : defaultOpen}
+        onOpenChange={handleOpenChange}
+        open={touchMode ? resolvedOpen : open}
+        {...props}
+      >
+        {children}
+      </TooltipPrimitive.Root>
+    </TooltipContext.Provider>
+  );
+}
 
 function TooltipTrigger({
   className,
   delay = 250,
+  onClick,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
+  const tooltip = React.useContext(TooltipContext);
+
   return (
     <TooltipPrimitive.Trigger
       data-slot="tooltip-trigger"
       delay={delay}
       className={cn(
-        "inline-flex items-center justify-center rounded-none outline-none focus-visible:ring-1 focus-visible:ring-ring/50",
+        "inline-flex min-h-6 min-w-6 touch-manipulation items-center justify-center rounded-none p-1 outline-none focus-visible:ring-1 focus-visible:ring-ring/50",
         className,
       )}
+      onClick={(event) => {
+        onClick?.(event);
+
+        if (!tooltip?.touchMode || event.defaultPrevented) {
+          return;
+        }
+
+        tooltip.setOpen(!tooltip.open);
+      }}
       {...props}
     />
   );
@@ -50,3 +114,23 @@ function TooltipContent({
 }
 
 export { Tooltip, TooltipTrigger, TooltipContent };
+
+function useTouchTooltipMode() {
+  const [touchMode, setTouchMode] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(hover: none), (pointer: coarse)");
+    const updateTouchMode = () => setTouchMode(mediaQuery.matches);
+
+    updateTouchMode();
+
+    mediaQuery.addEventListener("change", updateTouchMode);
+    return () => mediaQuery.removeEventListener("change", updateTouchMode);
+  }, []);
+
+  return touchMode;
+}
