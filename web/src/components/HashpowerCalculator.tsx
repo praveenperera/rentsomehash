@@ -182,13 +182,12 @@ export function HashpowerCalculator() {
               Adjust the rental inputs
             </CardTitle>
             <CardDescription className="text-sm leading-7">
-              Size the rental by capital or by target speed. Hashpower price
-              starts from the lowest live Braiins ask with available hash. If no
-              ask currently has available hash, it falls back to the Braiins
-              last average price. If you edit it, the calculator uses your
-              custom sats/PH/day assumption. Results are estimates based on
-              current inputs, not a forecast. Longer durations spread pool block
-              variance across more expected blocks.
+              Set your rental size by how much you want to spend or the hash
+              rate you need. We price from the lowest live Braiins ask with
+              available hash—if there's none, we use the last average. Want
+              something different? Edit it and we'll use your custom rate. These
+              are rough estimates from current data, not crystal ball
+              predictions. Longer rentals help even out the luck of pool blocks.
             </CardDescription>
           </CardHeader>
           <CalculatorControls
