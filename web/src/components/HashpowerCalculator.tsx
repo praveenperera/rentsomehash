@@ -57,6 +57,8 @@ const MAX_U32_TARGET = 4_294_967_296;
 const SECONDS_PER_DAY = 86_400;
 const MARKET_DATA_CACHE_KEY = "hashpower-calculator:market-data:v1";
 const MARKET_DATA_CACHE_TTL_MS = 120_000;
+const FAST_INPUT_COMMIT_DEBOUNCE_MS = 250;
+const INPUT_COMMIT_DEBOUNCE_MS = 1_000;
 const LOCAL_WARNING_CODES = new Set<WarningCode>([
   "EXPECTED_VALUE_ONLY",
   "SIMPLIFIED_MODEL",
@@ -417,6 +419,7 @@ function CalculatorControls({
                 ? "Loading live market data"
                 : `${formatNumber(derivedHashratePh, 2)} PH/s`
             }
+            normalizeValue={normalizeBudgetUsd}
             onChange={onBudgetChange}
           />
         ) : (
@@ -433,6 +436,7 @@ function CalculatorControls({
                 ? formatUsd(derivedBudgetUsd)
                 : "Loading live market data"
             }
+            normalizeValue={normalizeHashratePh}
             onChange={onTargetHashrateChange}
           />
         )}
@@ -444,6 +448,7 @@ function CalculatorControls({
         max={MAX_DURATION_SLIDER_DAYS}
         step={1}
         suffix="days"
+        normalizeValue={normalizeDurationDays}
         onChange={onDurationChange}
       />
       <NumberSlider
@@ -454,6 +459,7 @@ function CalculatorControls({
         max={priceSlider.max}
         step={BRAIINS_PRICE_STEP}
         suffix="sats/PH/day"
+        normalizeValue={identity}
         onChange={onPriceChange}
       />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -506,6 +512,7 @@ function NumberSlider({
   modified = false,
   detailLabel,
   detailValue,
+  normalizeValue,
   onChange,
 }: {
   label: string;
@@ -518,17 +525,57 @@ function NumberSlider({
   modified?: boolean;
   detailLabel?: string;
   detailValue?: string;
+  normalizeValue: (value: number) => number;
   onChange: (value: number) => number;
 }) {
   const [draftValue, setDraftValue] = React.useState(() =>
     formatInputValue(value),
   );
+  const debounceTimeoutRef = React.useRef<number | null>(null);
 
   React.useEffect(() => {
     setDraftValue(formatInputValue(value));
   }, [value]);
 
+  React.useEffect(() => {
+    const parsed = Number.parseFloat(draftValue);
+
+    if (!draftValue.trim() || !Number.isFinite(parsed)) {
+      clearCommitTimeout();
+      return;
+    }
+
+    if (draftValue === formatInputValue(value)) {
+      clearCommitTimeout();
+      return;
+    }
+
+    const normalizedValue = normalizeValue(parsed);
+    const commitDelayMs =
+      formatInputValue(normalizedValue) === draftValue
+        ? FAST_INPUT_COMMIT_DEBOUNCE_MS
+        : INPUT_COMMIT_DEBOUNCE_MS;
+
+    clearCommitTimeout();
+    debounceTimeoutRef.current = window.setTimeout(() => {
+      commitDraftValue();
+    }, commitDelayMs);
+
+    return () => {
+      clearCommitTimeout();
+    };
+  }, [draftValue, normalizeValue, value]);
+
+  function clearCommitTimeout() {
+    if (debounceTimeoutRef.current !== null) {
+      window.clearTimeout(debounceTimeoutRef.current);
+      debounceTimeoutRef.current = null;
+    }
+  }
+
   function commitDraftValue() {
+    clearCommitTimeout();
+
     const parsed = Number.parseFloat(draftValue);
 
     if (!draftValue.trim() || !Number.isFinite(parsed)) {
@@ -1479,6 +1526,10 @@ function normalizeBudgetUsd(value: number) {
   return clamp(normalized, MIN_BUDGET_USD, Number.MAX_SAFE_INTEGER);
 }
 
+function normalizeDurationDays(value: number) {
+  return clamp(value, MIN_DURATION_DAYS, MAX_DURATION_DAYS);
+}
+
 function normalizeHashratePh(value: number) {
   const normalized = Math.floor(value * 100) / 100;
   return clamp(normalized, MIN_HASHRATE_PH, Number.MAX_SAFE_INTEGER);
@@ -1506,7 +1557,7 @@ function normalizeAndSetDurationDays(
   setDurationDays: React.Dispatch<React.SetStateAction<number>>,
   value: number,
 ) {
-  const normalized = clamp(value, MIN_DURATION_DAYS, MAX_DURATION_DAYS);
+  const normalized = normalizeDurationDays(value);
   setDurationDays(normalized);
   return normalized;
 }
@@ -1521,6 +1572,10 @@ function normalizeAndSetPrice(
 
 function formatInputValue(value: number) {
   return Number.isFinite(value) ? value.toString() : "";
+}
+
+function identity(value: number) {
+  return value;
 }
 
 function sliderValue(value: number | readonly number[], fallback: number) {
