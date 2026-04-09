@@ -55,6 +55,7 @@ const OCEAN_DATUM_POOL_FEE_RATE = 0.01;
 const HASHES_PER_EH = 1e18;
 const MAX_U32_TARGET = 4_294_967_296;
 const SECONDS_PER_DAY = 86_400;
+const SATS_PER_BTC = 100_000_000;
 const MARKET_DATA_CACHE_KEY = "hashpower-calculator:market-data:v1";
 const MARKET_DATA_CACHE_TTL_MS = 120_000;
 const FAST_INPUT_COMMIT_DEBOUNCE_MS = 250;
@@ -90,12 +91,12 @@ const FAQ_ITEMS = [
   {
     question: "How are average transaction fees calculated?",
     answer:
-      "We grab up to 12 recent OCEAN blocks and pull the fee data from mempool.space for each. Add up the fees per block, take the average, then add that to the 3.125 BTC subsidy. Then we knock off 1% for OCEAN's DATUM fee. No fee data available? We fall back to subsidy-only.",
+      "We grab up to 12 recent OCEAN blocks and pull the fee data from mempool.space for each. Add up the fees per block, take the average, then add that to the 312,500,000 SATS subsidy. Then we knock off 1% for OCEAN's DATUM fee. No fee data available? We fall back to subsidy-only.",
   },
   {
-    question: "Why compare against buying spot BTC?",
+    question: "Why compare against buying spot bitcoin?",
     answer:
-      "Buying spot is the clean baseline for the same capital. The calculator shows whether the current rental assumptions are expected to return more or less BTC than simply buying bitcoin outright.",
+      "Buying spot is the clean baseline for the same capital. The calculator shows whether the current rental assumptions are expected to return more or less SATS than simply buying bitcoin outright.",
   },
 ] as const;
 const DEFAULT_FAQ_ITEM_ID = faqItemId(FAQ_ITEMS[0].question);
@@ -663,12 +664,9 @@ function ResultsGrid({
         title={`${formatNumber(data.results.hashratePh, 2)} PH/s`}
         description={
           <>
-            {formatUsd(data.inputs.budgetUsd)} capital over{" "}
+            {formatUsd(data.inputs.budgetUsd)} (
+            {formatSatsFromBtc(data.results.budgetBtc)} SATS) over{" "}
             {formatNumber(data.inputs.durationDays, 0)} days
-            <br />
-            <span className="font-mono text-xs text-foreground/62">
-              {formatBtc(data.results.budgetBtc)} BTC needed
-            </span>
           </>
         }
         detail={
@@ -684,7 +682,7 @@ function ResultsGrid({
       />
       <MetricCard
         eyebrow="Expected mined"
-        title={`${formatBtc(data.results.expectedMinedBtc)} BTC`}
+        title={`${formatSatsFromBtc(data.results.expectedMinedBtc)} SATS`}
         description={
           <span className="inline-flex items-center gap-1.5">
             {data.market.oceanAverageBlockTxFeesBtc === null
@@ -708,8 +706,8 @@ function ResultsGrid({
       />
       <MetricCard
         eyebrow="Buying spot"
-        title={`${formatBtc(data.results.buyBtc)} BTC`}
-        description={`Cost difference versus buying spot BTC instead`}
+        title={`${formatSatsFromBtc(data.results.buyBtc)} SATS`}
+        description="What you would get buying bitcoin at current spot price"
         modified={priceModified}
         detail={
           <div className="mt-2 space-y-3 border-t border-border/70 pt-3">
@@ -718,7 +716,7 @@ function ResultsGrid({
                 Spot price
               </p>
               <p className="font-mono text-sm text-foreground/78">
-                ${formatNumber(data.market.btcUsd, 0)} per BTC
+                ${formatNumber(data.market.btcUsd, 0)} per bitcoin
               </p>
             </div>
             <div>
@@ -733,6 +731,7 @@ function ResultsGrid({
               >
                 {formatSignedPercent(data.results.deltaPct)}
               </p>
+
             </div>
           </div>
         }
@@ -781,7 +780,7 @@ function ResultsGrid({
             </div>
             <div>
               <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                BTC difference
+                SATS difference
               </p>
               <p
                 className={cn(
@@ -789,7 +788,7 @@ function ResultsGrid({
                   deltaPositive ? "text-primary/78" : "text-destructive/78",
                 )}
               >
-                {formatSignedBtc(totalBtcDelta)} BTC
+                {formatSignedSatsFromBtc(totalBtcDelta)} SATS
               </p>
             </div>
           </div>
@@ -841,11 +840,11 @@ function RewardBreakdownTooltip({
 }) {
   return (
     <div className="font-mono text-xs">
-      <div>3.125 subsidy</div>
+      <div>312,500,000 sats subsidy</div>
       {averageTxFeesBtc === null ? (
         <div className="text-muted-foreground">+ unavailable tx fees</div>
       ) : (
-        <div>+ {formatBtc(averageTxFeesBtc)} avg tx fees</div>
+        <div>+ {formatSatsFromBtc(averageTxFeesBtc)} sats avg tx fees</div>
       )}
       <div>- 1% OCEAN fee</div>
     </div>
@@ -939,7 +938,7 @@ function OceanTimingCard({ data }: { data: HashpowerCalculatorResponse }) {
             }
             value={
               data.market.oceanAverageBlockTxFeesBtc
-                ? `${formatBtc(data.market.oceanAverageBlockTxFeesBtc)} BTC`
+                ? `${formatSatsFromBtc(data.market.oceanAverageBlockTxFeesBtc)} SATS`
                 : "Unavailable"
             }
           />
@@ -1432,7 +1431,7 @@ function localWarnings(
 
 function modelWarning(market: MarketSnapshot) {
   if (market.oceanAverageBlockTxFeesBtc !== null) {
-    return `This estimate uses a recent OCEAN block transaction-fee average of ${formatBtc(market.oceanAverageBlockTxFeesBtc)} BTC per block, applies OCEAN's 1% DATUM pool fee, and ignores future difficulty changes, fee changes, bid slippage, exact OCEAN TIDES payout accounting, and mining variance.`;
+    return `This estimate uses a recent OCEAN block transaction-fee average of ${formatSatsFromBtc(market.oceanAverageBlockTxFeesBtc)} SATS per block, applies OCEAN's 1% DATUM pool fee, and ignores future difficulty changes, fee changes, bid slippage, exact OCEAN TIDES payout accounting, and mining variance.`;
   }
 
   return "Recent OCEAN block transaction-fee data is unavailable, so this estimate uses subsidy only, applies OCEAN's 1% DATUM pool fee, and ignores future difficulty changes, fee changes, bid slippage, exact OCEAN TIDES payout accounting, and mining variance.";
@@ -1627,11 +1626,11 @@ function formatNumber(value: number, maximumFractionDigits: number) {
   );
 }
 
-function formatBtc(value: number) {
+function formatSatsFromBtc(value: number) {
   return new Intl.NumberFormat("en-US", {
-    maximumFractionDigits: 8,
-    minimumFractionDigits: 8,
-  }).format(value);
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+  }).format(value * SATS_PER_BTC);
 }
 
 function formatUsd(value: number) {
@@ -1648,9 +1647,9 @@ function formatSignedUsd(value: number) {
   return `${prefix}${formatUsd(Math.abs(value))}`;
 }
 
-function formatSignedBtc(value: number) {
+function formatSignedSatsFromBtc(value: number) {
   const prefix = value >= 0 ? "+" : "-";
-  return `${prefix}${formatBtc(Math.abs(value))}`;
+  return `${prefix}${formatSatsFromBtc(Math.abs(value))}`;
 }
 
 function formatPercent(value: number) {

@@ -13,8 +13,8 @@ const guides = await getGuides();
 ---
 
 <SiteLayout
-  title="Bitcoin Hashpower Calculator: Braiins vs Spot BTC"
-  description="Compare rented Braiins hashpower against buying spot BTC using live market data, expected BTC output, OCEAN timing, and liquidity warnings."
+  title="Bitcoin Hashpower Calculator: Braiins vs Spot Bitcoin"
+  description="Compare rented Braiins hashpower against buying spot bitcoin using live market data, expected SATS output, OCEAN timing, and liquidity warnings."
   ogImage="/images/rentsomehash-og-calculator.png"
 >
   <Header guides={guides} currentPath={Astro.url.pathname} />
@@ -30,8 +30,8 @@ const guides = await getGuides();
             Compare renting hashpower with buying bitcoin outright
           </h1>
           <p class="max-w-3xl text-lg leading-8 text-foreground/76">
-            Size the rental by capital or target speed, then compare the expected BTC result against
-            buying spot BTC with the same spend.
+            Size the rental by capital or target speed, then compare the expected SATS result against
+            buying spot bitcoin with the same spend.
           </p>
           <p class="max-w-3xl border-l border-primary/50 pl-4 text-sm leading-7 text-muted-foreground">
             This is an estimate, not a promise. It holds current difficulty and market price constant
