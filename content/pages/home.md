@@ -1,7 +1,7 @@
 ---
 title: "Rent Some Hash: Braiins to DATUM to OCEAN guide"
-description: "Mechanic's guide for setting up a DATUM node first, then using Braiins hashpower to point at it and make your own blocks on OCEAN."
-eyebrow: "Mechanic's guide"
+description: "Guide for setting up a DATUM node first, then using Braiins hashpower to point at it and make your own blocks on OCEAN."
+eyebrow: "Braiins → DATUM → OCEAN"
 primaryCtaLabel: "Choose a node guide"
 primaryCtaHref: "/#node-guides"
 secondaryCtaLabel: "Open Braiins guide"
@@ -19,7 +19,5 @@ warnings:
   - title: "Braiins fields are easy to get almost right"
     body: "Do not fund Braiins against a raw dynamic home IP. Braiins will not let you change the stratum target inside an existing bid, and deposited funds should not be treated like a withdrawable wallet balance. For home-hosted setups, use DDNS, tunneling, or a stable static public IP first."
 ---
-
-This is a cleaned-up version of Mechanic's workflow for getting from zero to a working Braiins-to-OCEAN setup.
 
 Start with one node guide. Once that guide leaves you with a working DATUM endpoint, move to the shared Braiins guide and create the bid there.
