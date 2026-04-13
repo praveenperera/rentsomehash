@@ -161,7 +161,7 @@ export function HashpowerCalculator() {
     : null;
   const isLoading = state.status === "loading";
   const budgetSlider = budgetSliderRange();
-  const priceSlider = priceSliderRange(displayedPrice);
+  const priceSlider = priceSliderRange(marketDefaultPrice);
   const hashrateSlider = hashrateSliderRange(
     marketData?.market ?? null,
     durationDays,
@@ -1473,13 +1473,13 @@ function uniqueWarnings(warnings: CalculatorWarning[]) {
   });
 }
 
-function priceSliderRange(price: number) {
-  const rawMin = price * 0.5;
+function priceSliderRange(basePrice: number) {
+  const rawMin = basePrice * 0.5;
   const snappedMin = Math.max(
     BRAIINS_PRICE_STEP,
     Math.floor(rawMin / BRAIINS_PRICE_STEP) * BRAIINS_PRICE_STEP,
   );
-  const rawMax = price * 2;
+  const rawMax = basePrice * 2;
   const snappedMax = Math.max(
     1_000,
     Math.ceil(rawMax / BRAIINS_PRICE_STEP) * BRAIINS_PRICE_STEP,
