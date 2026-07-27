@@ -11,7 +11,7 @@ interface Props {
 
 const { guide } = Astro.props;
 const badgeLabel = getGuideStageLabel(guide);
-const badgeVariant = guide.data.stage === "braiins" ? "default" : "outline";
+const badgeVariant = guide.data.stage === "hashpower" ? "default" : "outline";
 ---
 
 <a
@@ -20,6 +20,14 @@ const badgeVariant = guide.data.stage === "braiins" ? "default" : "outline";
 >
   <div class="flex flex-wrap items-center gap-3">
     <Badge variant={badgeVariant}>{badgeLabel}</Badge>
+    {guide.data.stage === "hashpower" && (
+      <Badge
+        variant="outline"
+        className="border-primary/25 bg-primary/10 text-primary"
+      >
+        {guide.data.provider === "pickhash" ? "Self-hosted" : "Hosted"}
+      </Badge>
+    )}
     <p class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
       {getReadingTime(guide)}
     </p>

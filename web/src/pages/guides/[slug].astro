@@ -11,8 +11,8 @@ import {
   getGuideHref,
   getGuideStageLabel,
   getGuides,
+  getHashpowerGuides,
   getNodeGuides,
-  getPrimaryBraiinsGuide,
   getReadingTime,
 } from "@/lib/content";
 import SiteLayout from "@/layouts/SiteLayout.astro";
@@ -34,9 +34,12 @@ if (!entry) {
 
 const { Content, headings } = await render(entry);
 const nodeGuides = getNodeGuides(guides);
-const braiinsGuide = getPrimaryBraiinsGuide(guides);
+const hashpowerGuides = getHashpowerGuides(guides);
 const isNodeGuide = entry.data.stage === "node";
 const otherNodeGuides = nodeGuides.filter((guide) => guide.data.slug !== entry.data.slug);
+const otherHashpowerGuides = hashpowerGuides.filter(
+  (guide) => guide.data.slug !== entry.data.slug,
+);
 const ogImageBySlug: Record<string, string> = {
   "braiins-ocean": "/images/rentsomehash-og-braiins-ocean.png",
   vps: "/images/rentsomehash-og-vps.png",
@@ -53,7 +56,7 @@ const ogImage = ogImageBySlug[entry.data.slug] ?? "/og.png";
     <section class="border-b border-border/70">
       <div class="mx-auto max-w-7xl px-6 pt-28 pb-14 lg:px-8">
         <div class="flex flex-wrap items-center gap-3">
-          <Badge variant={entry.data.stage === "braiins" ? "default" : "outline"}>
+          <Badge variant={entry.data.stage === "hashpower" ? "default" : "outline"}>
             {getGuideStageLabel(entry)}
           </Badge>
           <p class="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
@@ -90,7 +93,7 @@ const ogImage = ogImageBySlug[entry.data.slug] ?? "/og.png";
               </div>
             </dl>
 
-            {isNodeGuide && braiinsGuide && (
+            {isNodeGuide && hashpowerGuides.length > 0 && (
               <div class="space-y-4">
                 <Separator />
                 <div class="space-y-2">
@@ -98,13 +101,14 @@ const ogImage = ogImageBySlug[entry.data.slug] ?? "/og.png";
                     Next step
                   </p>
                   <p class="text-sm leading-7 text-foreground/74">
-                    Once this guide gives you a working endpoint, move to the shared Braiins guide.
+                    Once this guide gives you a working endpoint, compare PickHash and Braiins before
+                    choosing how to rent hashpower.
                   </p>
                   <a
-                    href={getGuideHref(braiinsGuide)}
+                    href="/#hashpower-guides"
                     class="inline-flex items-center gap-2 text-sm font-medium text-primary transition-colors hover:text-primary/80"
                   >
-                    Open the Braiins guide
+                    Compare rental options
                     <ArrowRightIcon className="size-4" aria-hidden="true" />
                   </a>
                 </div>
@@ -119,7 +123,7 @@ const ogImage = ogImageBySlug[entry.data.slug] ?? "/og.png";
                     Start here first
                   </p>
                   <p class="text-sm leading-7 text-foreground/74">
-                    Finish one node guide before you do any of the Braiins steps on this page. If
+                    Finish one node guide before you rent hashpower on this page. If
                     you are starting from zero, the VPS guide is the cleanest default. If you
                     already run StartOS or Umbrel at home, use that guide instead.
                   </p>
@@ -171,12 +175,12 @@ const ogImage = ogImageBySlug[entry.data.slug] ?? "/og.png";
                 {isNodeGuide ? "Other node guides" : "Node setup guides"}
               </p>
 
-              {isNodeGuide && braiinsGuide && (
+              {isNodeGuide && hashpowerGuides.length > 0 && (
                 <a
-                  href={getGuideHref(braiinsGuide)}
+                  href="/#hashpower-guides"
                   class="block text-sm text-foreground/70 transition-colors hover:text-foreground"
                 >
-                  Continue to Braiins setup
+                  Compare PickHash and Braiins
                 </a>
               )}
 
@@ -189,6 +193,25 @@ const ogImage = ogImageBySlug[entry.data.slug] ?? "/og.png";
                 </a>
               ))}
             </div>
+
+            {!isNodeGuide && otherHashpowerGuides.length > 0 && (
+              <>
+                <Separator />
+                <div class="space-y-2">
+                  <p class="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                    Other rental option
+                  </p>
+                  {otherHashpowerGuides.map((guide) => (
+                    <a
+                      href={getGuideHref(guide)}
+                      class="block text-sm text-foreground/70 transition-colors hover:text-foreground"
+                    >
+                      {guide.data.title}
+                    </a>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </aside>
       </div>
@@ -220,15 +243,15 @@ const ogImage = ogImageBySlug[entry.data.slug] ?? "/og.png";
           </a>
         )}
 
-        {isNodeGuide && braiinsGuide ? (
+        {isNodeGuide && hashpowerGuides.length > 0 ? (
           <a
-            href={getGuideHref(braiinsGuide)}
+            href="/#hashpower-guides"
             class:list={[
               buttonVariants({ size: "lg" }),
               "w-full justify-between whitespace-normal text-left sm:w-auto sm:whitespace-nowrap",
             ]}
           >
-            Continue to Braiins setup
+            Compare rental options
             <ArrowRightIcon className="size-4" aria-hidden="true" />
           </a>
         ) : (

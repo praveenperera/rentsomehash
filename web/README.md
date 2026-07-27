@@ -15,6 +15,7 @@ Static Astro site for `rentsomehash.com`, deployed with Cloudflare Workers stati
 Editorial content lives outside the Astro app in repo-root `/content`:
 
 - `content/pages/home.md`
+- `content/guides/pickhash.md`
 - `content/guides/braiins-ocean.md`
 - `content/guides/startos.md`
 

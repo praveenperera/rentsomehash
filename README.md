@@ -36,6 +36,7 @@ Current guides:
 - [`content/guides/vps.md`](./content/guides/vps.md)
 - [`content/guides/startos.md`](./content/guides/startos.md)
 - [`content/guides/umbrel.md`](./content/guides/umbrel.md)
+- [`content/guides/pickhash.md`](./content/guides/pickhash.md)
 - [`content/guides/braiins-ocean.md`](./content/guides/braiins-ocean.md)
 
 Each guide needs frontmatter that matches the guides schema in [`web/src/content.config.ts`](./web/src/content.config.ts):
@@ -44,7 +45,8 @@ Each guide needs frontmatter that matches the guides schema in [`web/src/content
 - `description`
 - `slug`
 - `order`
-- `stage`
+- `stage` (`node` or `hashpower`)
+- `provider` and `recommended` for hashpower guides
 - `summary`
 - `navLabel`
 - `setupType`

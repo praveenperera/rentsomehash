@@ -10,7 +10,7 @@ export function UmbrelCard({ artSrc }: UmbrelCardProps) {
       route="Node setup"
       eyebrow="Existing Umbrel setup"
       title="Umbrel node setup for DATUM"
-      subtitle="Reuse your Umbrel box, install Bitcoin Knots and DATUM, then expose port 23334 so Braiins can reach it"
+      subtitle="Reuse your Umbrel box, install Bitcoin Knots and DATUM, then expose port 23334 so rented rigs can reach it"
       pills={["UMBREL", "DATUM", "PORT 23334"]}
       footerLabel="Guide 3 of 4"
       renderIllustration={({ height, width }) => (

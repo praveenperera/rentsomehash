@@ -361,7 +361,7 @@
   background: color-mix(in oklch, var(--primary) 48%, white 52%);
 }
 
-.home-stage-section-braiins {
+.home-stage-section-hashpower {
   background:
     radial-gradient(
       circle at top left,
@@ -376,7 +376,7 @@
   box-shadow: inset 0 1px 0 color-mix(in oklch, white 45%, transparent);
 }
 
-.home-stage-section-braiins::before {
+.home-stage-section-hashpower::before {
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
@@ -424,7 +424,7 @@
     0 1px 0 rgba(15, 23, 42, 0.04);
 }
 
-.home-step-card-braiins {
+.home-step-card-hashpower {
   border-color: color-mix(in oklch, var(--chart-1) 16%, var(--border));
   background: color-mix(in oklch, var(--background) 99%, white 1%);
   box-shadow:
@@ -459,7 +459,7 @@
   border-color: color-mix(in oklch, var(--primary) 48%, var(--border));
 }
 
-.home-stage-section-braiins .group.block {
+.home-stage-section-hashpower .group.block {
   border-color: color-mix(in oklch, var(--chart-1) 15%, var(--border));
   background: linear-gradient(
     135deg,
@@ -472,7 +472,7 @@
     0 10px 24px rgba(15, 23, 42, 0.04);
 }
 
-.home-stage-section-braiins .group.block:hover {
+.home-stage-section-hashpower .group.block:hover {
   border-color: color-mix(in oklch, oklch(0.72 0.06 230) 48%, var(--border));
 }
 
@@ -481,8 +481,8 @@
   border-color: color-mix(in oklch, var(--primary) 24%, var(--border));
 }
 
-.home-step-card-braiins:hover,
-.home-step-card-braiins:focus-visible {
+.home-step-card-hashpower:hover,
+.home-step-card-hashpower:focus-visible {
   border-color: color-mix(in oklch, oklch(0.72 0.06 230) 24%, var(--border));
 }
 
@@ -623,7 +623,7 @@
   color: color-mix(in oklch, var(--primary) 40%, white 60%);
 }
 
-.dark .home-stage-section-braiins {
+.dark .home-stage-section-hashpower {
   background:
     radial-gradient(
       circle at top left,
@@ -656,7 +656,7 @@
   );
 }
 
-.dark .home-step-card-braiins {
+.dark .home-step-card-hashpower {
   border-color: color-mix(in oklch, oklch(0.63 0.05 230) 42%, var(--border));
   background: linear-gradient(
     135deg,
@@ -669,7 +669,7 @@
     0 1px 0 rgba(15, 23, 42, 0.04);
 }
 
-.dark .home-stage-section-braiins .group.block {
+.dark .home-stage-section-hashpower .group.block {
   border-color: color-mix(in oklch, oklch(0.63 0.05 230) 42%, var(--border));
   background: linear-gradient(
     135deg,
@@ -725,7 +725,7 @@
   }
 
   .home-stage-section-node::before,
-  .home-stage-section-braiins::before {
+  .home-stage-section-hashpower::before {
     width: 100%;
     height: 0.35rem;
     inset: 0 0 auto 0;

@@ -3,7 +3,14 @@ title: "Braiins hashpower setup for DATUM and OCEAN"
 description: "Complete one node guide first, then use this shared guide to create the Braiins account, fund it, and point the bid at your DATUM endpoint."
 slug: braiins-ocean
 order: 4
-stage: braiins
+stage: hashpower
+provider: braiins
+approach: "Hosted hashpower order book"
+bestFor: "Simpler operations, cancellable bids, and pay-as-delivered settlement"
+tradeoffs:
+  - "Requires Telegram verification and bid confirmation"
+  - "Deposited funds are generally not withdrawable"
+  - "Marketplace remains in beta and matching is not guaranteed"
 summary: "Once your node is ready, create the Braiins account, fund it, and enter the correct pool URL and username."
 navLabel: "Braiins"
 setupType: "Shared Braiins setup"

@@ -1,6 +1,6 @@
 ---
 title: "Umbrel node setup for DATUM"
-description: "Use this if you already run Umbrel and want to reuse that box for DATUM before continuing to the shared Braiins guide."
+description: "Use this if you already run Umbrel and want to reuse that box for DATUM before connecting rented hashpower."
 slug: umbrel
 order: 3
 stage: node
@@ -16,21 +16,21 @@ updated: "2026-04-06"
 
 Use this guide if you already run Umbrel and want to keep the node and DATUM on hardware you already trust.
 
-> Do not use a raw dynamic home IP with Braiins. Braiins will not let you change the stratum target inside an existing bid, and deposited funds should not be treated like a withdrawable wallet balance. If your home IP changes after you fund Braiins, you can be stuck with sats tied to a dead endpoint. Use DDNS, a tunnel, or a stable static public IP before funding Braiins.
+> Use a stable hostname for rented hashpower. MiningRigRentals does not refund rentals pointed at IP-based pools, and a changing home IP can strand paid rental time on a dead endpoint. Use DDNS or a tunnel before spending sats.
 
-This guide leaves you with an Umbrel-hosted DATUM endpoint ready for the shared Braiins guide:
+This guide leaves you with an Umbrel-hosted DATUM endpoint ready for PickHash or another hashpower provider:
 
 - Install Bitcoin Knots on Umbrel
 - Install DATUM on Umbrel
 - Configure DATUM correctly
 - Forward port `23334` from your router to the Umbrel box
-- Carry the public endpoint into the Braiins guide
+- Carry the public endpoint into the PickHash guide
 
 ## Why port forwarding is the straightforward route here
 
 On Umbrel, DATUM listens on port `23334`.
 
-On your local network, miners point at the Umbrel box IP directly. For Braiins, you need that same DATUM port reachable from the internet, so the straightforward route is to forward `23334` from your router to the Umbrel machine.
+On your local network, miners point at the Umbrel box IP directly. For rented hashpower, you need that same DATUM port reachable from the internet, so the straightforward route is to forward `23334` from your router to the Umbrel machine.
 
 That keeps the setup simple and avoids turning this guide into a separate tunnel guide.
 
@@ -42,7 +42,7 @@ Install Bitcoin Knots from the Umbrel App Store:
 
 ![Umbrel App Store search results showing the Bitcoin Knots app](/images/guides/umbrel/bitcoin-knots-install.png)
 
-The Knots app includes BIP-110 in the version selector, so if you want that build, select the BIP-110 version in the app settings.
+The Knots app includes [BIP-110](https://bip110.org/) in the version selector, so if you want that build, select the BIP-110 version in the app settings.
 
 ![Umbrel Bitcoin Knots settings showing the BIP-110 version selector](/images/guides/umbrel/bitcoin-knots-bip110.png)
 
@@ -117,7 +117,7 @@ On your local network, DATUM listens on:
 stratum+tcp://your-umbrel-lan-ip:23334
 ```
 
-That local address is useful for checking that DATUM is up, but it is not what Braiins should use from outside your house.
+That local address is useful for checking that DATUM is up, but it is not what a remote hashpower provider should use from outside your house.
 
 ## 6. Forward port 23334 from your router to Umbrel
 
@@ -137,17 +137,17 @@ If your router lets you reserve DHCP leases, it is worth pinning the Umbrel box 
 - if your router or firewall supports it, restrict allowed source IP ranges instead of exposing the port broadly
 - avoid enabling broad UPnP auto-exposure for this service, and disable any automatic rule that opens `23334` wider than intended
 
-## 7. Point Braiins at the endpoint you actually expose
+## 7. Record the endpoint you actually expose
 
-For Braiins, this needs to be a stable public endpoint, not just whatever home IP you happen to have right now.
+For rented hashpower, this needs to be a stable public endpoint, not just whatever home IP you happen to have right now.
 
-Reminder: Braiins will not let you change the stratum target inside an existing bid. Do not use a raw dynamic home IP here.
+Use a hostname rather than a raw IP so MiningRigRentals rentals remain eligible for under-delivery refunds.
 
 ### 7a. If your router supports DDNS
 
 Most home connections do not have a stable public IP, and many routers support DDNS with a simple hostname setup.
 
-If you have that configured, Braiins should use the hostname on port `23334`:
+If you have that configured, the rental provider should use the hostname on port `23334`:
 
 ```text
 stratum+tcp://hostname.domain.com:23334
@@ -169,7 +169,7 @@ If the check fails, fix your DDNS or port-forwarding setup before moving on.
 
 ### 7b. If your ISP gives you a stable static public IP
 
-If your home connection really does have a stable static public IP and you are intentionally using that instead of DDNS, Braiins can use it on port `23334`:
+If your home connection really does have a stable static public IP and you are intentionally using that instead of DDNS, the endpoint is:
 
 ```text
 stratum+tcp://your-public-ip:23334
@@ -177,11 +177,11 @@ stratum+tcp://your-public-ip:23334
 
 Replace `your-public-ip` with the actual stable static public IP of your home connection.
 
-If your ISP changes that IP, stop and fix the endpoint before spending more sats on Braiins.
+If your ISP changes that IP, stop and fix the endpoint before spending more sats. PickHash can give a raw IP a stable DuckDNS name during setup.
 
-## 8. What you bring into Braiins
+## 8. What you bring into PickHash
 
-When this guide is done, bring one of these public endpoints into the shared Braiins guide:
+When this guide is done, bring one of these public endpoints into the PickHash guide:
 
 - `stratum+tcp://hostname.domain.com:23334`
 - `stratum+tcp://your-public-ip:23334`
@@ -192,17 +192,15 @@ Use the Bitcoin address receiving OCEAN rewards as the username, optionally foll
 bc1qyourrealbitcoinaddress.someworkername
 ```
 
-Leave the password blank unless Braiins insists on one.
+PickHash does not require a stratum password for this setup.
 
-Then continue here:
+Then continue to the [PickHash guide](/guides/pickhash/).
 
-<https://rentsomehash.com/guides/braiins-ocean/>
-
-Before funding Braiins, you can also run the [hashpower calculator](/calculator/) to compare the estimate against buying BTC outright.
+The [Braiins guide](/guides/braiins-ocean/) remains available as an alternative.
 
 ## Why use this guide
 
 - You already have an Umbrel box you trust, so you can reuse it instead of building a separate VPS stack
 - DATUM on Umbrel already sits on top of Bitcoin Knots and speaks Stratum on port `23334`
-- Port forwarding keeps the setup simple if your goal is just to make DATUM reachable by Braiins
+- Port forwarding keeps the setup simple if your goal is just to make DATUM reachable by rented hashpower
 - The node and DATUM stay on hardware you already control, which is the entire reason to take this route

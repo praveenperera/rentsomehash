@@ -17,10 +17,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  getBraiinsGuides,
   getFeaturedNodeGuide,
   getGuideHref,
   getGuides,
+  getHashpowerGuide,
+  getHashpowerGuides,
   getHomePage,
   getNodeGuides,
   getReadingTime,
@@ -30,12 +31,15 @@ import SiteLayout from "@/layouts/SiteLayout.astro";
 const home = await getHomePage();
 const guides = await getGuides();
 const nodeGuides = getNodeGuides(guides);
-const braiinsGuides = getBraiinsGuides(guides);
+const hashpowerGuides = getHashpowerGuides(guides);
 const featuredNodeGuide = getFeaturedNodeGuide(guides);
-const braiinsGuide = braiinsGuides[0];
+const pickHashGuide = getHashpowerGuide(guides, "pickhash");
+const braiinsGuide = getHashpowerGuide(guides, "braiins");
 
-if (!featuredNodeGuide || !braiinsGuide) {
-  throw new Error("Expected at least one node guide and one Braiins guide");
+if (!featuredNodeGuide || !pickHashGuide || !braiinsGuide) {
+  throw new Error(
+    "Expected a featured node guide plus PickHash and Braiins guides",
+  );
 }
 
 const { Content } = await render(home);
@@ -51,7 +55,7 @@ const { Content } = await render(home);
           <div class="space-y-4">
             <Badge variant="outline" className="home-hero-badge">{home.data.eyebrow}</Badge>
             <h1 class="max-w-4xl text-5xl font-heading font-medium tracking-[-0.08em] text-balance sm:text-6xl">
-              Set up the node <span class="text-primary">first</span>. Then point Braiins at it.
+              Set up the node <span class="text-primary">first</span>. Choose how to rent the hash.
               Build blocks on <span class="text-primary">OCEAN</span>.
             </h1>
             <p class="max-w-2xl text-lg leading-8 text-foreground/76">
@@ -111,21 +115,21 @@ const { Content } = await render(home);
               </div>
               <div class="space-y-1">
                 <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                  Then do
+                  Then choose
                 </dt>
-                <dd class="text-sm text-foreground/82">{braiinsGuide.data.title}</dd>
+                <dd class="text-sm text-foreground/82">PickHash or Braiins</dd>
               </div>
               <div class="space-y-1">
                 <dt class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                   Goal
                 </dt>
-                <dd class="text-sm text-foreground/82">Get a public DATUM endpoint ready for Braiins</dd>
+                <dd class="text-sm text-foreground/82">Get a public DATUM hostname ready for rented rigs</dd>
               </div>
             </dl>
           </CardContent>
           <CardFooter className="justify-between gap-4 border-t border-border/70 py-4">
             <p class="text-xs leading-6 text-foreground/66">
-              Use this first, then bring its endpoint into the shared Braiins guide
+              Use this first, then bring its endpoint into either rental guide
             </p>
             <a
               href={getGuideHref(featuredNodeGuide)}
@@ -149,18 +153,18 @@ const { Content } = await render(home);
             This is a 2-step workflow
           </h2>
           <p class="max-w-lg text-base leading-8 text-foreground/74">
-            First you finish one node setup guide and make DATUM reachable. Then you use the shared
-            Braiins guide once, with the endpoint and username details from the node guide you chose.
+            First you finish one node setup guide and make DATUM reachable. Then you choose a
+            self-hosted controller or hosted order book and point the rented hashpower at that endpoint.
           </p>
         </div>
 
         <div class="grid gap-4 xl:grid-cols-2">
           {home.data.highlights.map((highlight, index) => (
             <a
-              href={index === 0 ? "/#node-guides" : getGuideHref(braiinsGuide)}
+              href={index === 0 ? "/#node-guides" : "/#hashpower-guides"}
               class:list={[
                 "home-step-card relative isolate block overflow-hidden border px-5 py-6 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-all",
-                index === 0 ? "home-step-card home-step-card-node" : "home-step-card home-step-card-braiins",
+                index === 0 ? "home-step-card home-step-card-node" : "home-step-card home-step-card-hashpower",
               ]}
             >
               <span class="home-step-number" aria-hidden="true">
@@ -211,7 +215,7 @@ const { Content } = await render(home);
       </div>
     </section>
 
-    <section id="braiins-guide" class="home-stage-section home-stage-section-braiins border-y border-border/70">
+    <section id="hashpower-guides" class="home-stage-section home-stage-section-hashpower border-y border-border/70">
       <div class="mx-auto max-w-7xl px-6 py-16 lg:px-8">
         <div class="space-y-8">
           <div class="space-y-5">
@@ -219,32 +223,90 @@ const { Content } = await render(home);
               Step 2
             </p>
             <h2 class="text-3xl font-heading tracking-[-0.06em]">
-              Use the shared Braiins guide once the node is ready
+              Choose the rental model that fits you
             </h2>
             <p class="max-w-3xl text-base leading-8 text-foreground/74">
-              The Braiins side is separate. Once your node guide gives you a working public DATUM
-              endpoint, use the shared Braiins guide to create the account, fund it, and create the bid.
+              Both paths can point hashpower at your DATUM endpoint. The difference is how orders are
+              operated, settled, and stopped. Compare the trade-offs before funding either account.
             </p>
           </div>
 
-          <div>
-            <GuideListItem guide={braiinsGuide} />
+          <div class="grid gap-5 lg:grid-cols-2">
+            {hashpowerGuides.map((guide) => (
+              <Card className="home-hashpower-option h-full gap-0 py-0">
+                <CardHeader className="gap-4 border-b border-border/70 py-6">
+                  <div class="flex flex-wrap items-center justify-between gap-3">
+                    <Badge variant="outline">
+                      {guide.data.provider === "pickhash" ? "Self-hosted" : "Hosted"}
+                    </Badge>
+                    <p class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                      {getReadingTime(guide)}
+                    </p>
+                  </div>
+                  <div class="space-y-2">
+                    <CardTitle className="text-xl tracking-[-0.04em]">
+                      {guide.data.navLabel}
+                    </CardTitle>
+                    <CardDescription className="text-sm leading-7 text-foreground/74">
+                      {guide.data.approach}
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex-1 space-y-6 py-6">
+                  <div class="space-y-2">
+                    <p class="text-[11px] uppercase tracking-[0.22em] text-primary">
+                      Best for
+                    </p>
+                    <p class="text-sm leading-7 text-foreground/82">
+                      {guide.data.bestFor}
+                    </p>
+                  </div>
+                  <div class="space-y-3">
+                    <p class="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+                      Know before you choose
+                    </p>
+                    <ul class="space-y-3">
+                      {guide.data.tradeoffs.map((tradeoff) => (
+                        <li class="flex gap-3 text-sm leading-6 text-foreground/72">
+                          <span class="mt-2 size-1.5 shrink-0 bg-primary/70" aria-hidden="true"></span>
+                          <span>{tradeoff}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </CardContent>
+                <CardFooter className="border-t border-border/70 py-5">
+                  <a
+                    href={getGuideHref(guide)}
+                    class={buttonVariants({ size: "lg" })}
+                  >
+                    Open {guide.data.navLabel} guide
+                    <ArrowRightIcon className="size-4" aria-hidden="true" />
+                  </a>
+                </CardFooter>
+              </Card>
+            ))}
           </div>
 
           <div class="border border-primary/30 bg-primary/10 p-5">
             <div class="flex flex-wrap items-center justify-between gap-4">
               <div class="space-y-2">
                 <p class="text-[11px] uppercase tracking-[0.24em] text-primary">
-                  Before funding
+                  See it before you run it
                 </p>
                 <p class="max-w-2xl text-sm leading-7 text-foreground/76">
-                  Use the calculator to compare the expected hashpower result against simply buying
-                  BTC at spot before you send sats into Braiins.
+                  Watch the full installation and first-rental walkthrough, then use PickHash's
+                  DRY-RUN mode to rehearse your own session without spending sats.
                 </p>
               </div>
-              <a href="/calculator/" class={buttonVariants({ size: "lg" })}>
-                Open calculator
-                <ArrowRightIcon className="size-4" aria-hidden="true" />
+              <a
+                href="https://www.youtube.com/watch?v=QODtoBSir88"
+                target="_blank"
+                rel="noopener noreferrer"
+                class={buttonVariants({ size: "lg" })}
+              >
+                Watch PickHash tutorial
+                <ArrowSquareOutIcon className="size-4" aria-hidden="true" />
               </a>
             </div>
           </div>

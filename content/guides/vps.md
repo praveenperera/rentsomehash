@@ -1,10 +1,10 @@
 ---
 title: "Fresh VPS node setup for DATUM"
-description: "Use this if you want the cleanest setup: rent a Linux VPS, install the combined node + DATUM box, wait for sync, then continue to the shared Braiins guide."
+description: "Use this if you want the cleanest setup: rent a Linux VPS, install the combined node + DATUM box, wait for sync, then connect a hashpower provider."
 slug: vps
 order: 1
 stage: node
-summary: "Rent a Linux VPS, install the combined node + DATUM box, and get a public DATUM endpoint ready for Braiins."
+summary: "Rent a Linux VPS, install the combined node + DATUM box, and get a public DATUM endpoint ready for rented hashpower."
 navLabel: "VPS"
 setupType: "Fresh VPS setup"
 eyebrow: "Step 1: Node setup"
@@ -79,7 +79,7 @@ The short version is simple:
 
 > If you are renting a VPS, almost nobody doing this guide wants to pay for archival-node storage. Pruning to `550` is the default for a reason.
 
-> If you selected BIP-110 in the installer, that is what the box is running.
+> If you selected [BIP-110](https://bip110.org/) in the installer, that is what the box is running.
 
 ## 5. Wait for the node to sync
 
@@ -93,22 +93,22 @@ journalctl -u bitcoin_knots.service -f
 
 Do not rush this part. Getting the box online is the slowest step in the whole process.
 
-## What you bring into Braiins
+## What you bring into PickHash
 
-Once this guide is done, bring these values into the shared Braiins guide:
+Once this guide is done, bring these values into the PickHash guide:
 
-- Mining pool URL: `stratum+tcp://your-vps-ip:23334`
-- Pool username: `bc1qyourrealbitcoinaddress.someworkername`
+- Stratum endpoint: `stratum+tcp://your-vps-ip:23334`
+- Worker username: `bc1qyourrealbitcoinaddress.someworkername`
 - Reward destination: the `POOL_ADDRESS` you chose during install
 
-Then continue here:
+MiningRigRentals does not refund rentals pointed at a bare IP address. PickHash can give this VPS endpoint a stable DuckDNS name during setup; use that option unless you already have a hostname pointing at the VPS.
 
-<https://rentsomehash.com/guides/braiins-ocean/>
+Then continue to the [PickHash guide](/guides/pickhash/).
 
-Before funding Braiins, you can also run the [hashpower calculator](/calculator/) to compare the estimate against buying BTC outright.
+The [Braiins guide](/guides/braiins-ocean/) remains available as an alternative.
 
 ## Why use this guide
 
 - This is the cleanest route if you do not already run a node and just want to get from zero to a working DATUM box
 - The node and DATUM live together on one machine, which avoids a lot of cross-box networking mistakes
-- Braiins only needs one public IP and port after this, so the shared Braiins guide stays simple
+- A hashpower provider only needs one public hostname and port after this, so the rental setup stays simple

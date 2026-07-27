@@ -1,7 +1,7 @@
 ---
 import type { GuideEntry } from "@/lib/content";
 import { buttonVariants } from "@/components/ui/button";
-import { getGuideHref } from "@/lib/content";
+import { getGuideHref, getHashpowerGuides } from "@/lib/content";
 import ThemeToggle from "@/components/ThemeToggle";
 
 interface Props {
@@ -10,13 +10,15 @@ interface Props {
 }
 
 const { guides, currentPath } = Astro.props;
+const hashpowerGuides = getHashpowerGuides(guides);
 const navLinks = [
   { href: "/", label: "Home" },
-  { href: "/calculator/", label: "Calculator" },
-  ...guides.map((guide) => ({
+  { href: "/#node-guides", label: "Node guides" },
+  ...hashpowerGuides.map((guide) => ({
     href: getGuideHref(guide),
     label: guide.data.navLabel,
   })),
+  { href: "/calculator/", label: "Calculator" },
 ];
 ---
 

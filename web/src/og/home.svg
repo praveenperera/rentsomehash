@@ -31,20 +31,20 @@
   <rect x="110" y="80" width="1000" height="5" rx="2.5" fill="url(#accent)" />
 
   <rect x="160" y="130" width="392" height="46" rx="23" fill="#171A1F" stroke="rgba(255,255,255,0.16)" />
-  <text x="356" y="160" text-anchor="middle" fill="#E8EAEE" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="18" font-weight="600" letter-spacing="3">Braiins → DATUM → OCEAN</text>
+  <text x="356" y="160" text-anchor="middle" fill="#E8EAEE" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="18" font-weight="600" letter-spacing="3">HASHPOWER → DATUM → OCEAN</text>
 
   <text x="160" y="275" fill="#F7F8FA" font-family="JetBrainsMono NF, SFMono-Regular, Menlo, monospace" font-size="80" font-weight="700" letter-spacing="-3">Rent Some</text>
   <text x="160" y="355" fill="#F7F8FA" font-family="JetBrainsMono NF, SFMono-Regular, Menlo, monospace" font-size="80" font-weight="700" letter-spacing="-3">Hash</text>
 
-  <text x="160" y="430" fill="#C9CED6" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="32" font-weight="500">Braiins to DATUM to OCEAN guide</text>
-  <text x="160" y="472" fill="#C9CED6" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="32" font-weight="500">Rent hashpower, point it at DATUM, build blocks on OCEAN</text>
+  <text x="160" y="430" fill="#C9CED6" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="32" font-weight="500">Choose PickHash or Braiins</text>
+  <text x="160" y="472" fill="#C9CED6" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="32" font-weight="500">Rent hash, use your templates, build on OCEAN</text>
 
   <rect x="160" y="500" width="308" height="44" rx="22" fill="#FF9F57" />
   <text x="314" y="529" text-anchor="middle" fill="#14171B" font-family="JetBrainsMono NF, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="700" letter-spacing="2">READ THE MAIN GUIDE</text>
 
   <g>
     <rect x="810" y="150" width="92" height="34" rx="17" fill="#1A1D22" stroke="rgba(255,255,255,0.12)" />
-    <text x="856" y="172" text-anchor="middle" fill="#FF9F57" font-family="JetBrainsMono NF, SFMono-Regular, Menlo, monospace" font-size="15" font-weight="700" letter-spacing="1.5">BRAIINS</text>
+    <text x="856" y="172" text-anchor="middle" fill="#FF9F57" font-family="JetBrainsMono NF, SFMono-Regular, Menlo, monospace" font-size="15" font-weight="700" letter-spacing="1.5">RENT</text>
     <rect x="914" y="150" width="84" height="34" rx="17" fill="#1A1D22" stroke="rgba(255,255,255,0.12)" />
     <text x="956" y="172" text-anchor="middle" fill="#FF9F57" font-family="JetBrainsMono NF, SFMono-Regular, Menlo, monospace" font-size="15" font-weight="700" letter-spacing="1.5">DATUM</text>
     <rect x="1010" y="150" width="80" height="34" rx="17" fill="#1A1D22" stroke="rgba(255,255,255,0.12)" />

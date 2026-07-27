@@ -731,7 +731,6 @@ function ResultsGrid({
               >
                 {formatSignedPercent(data.results.deltaPct)}
               </p>
-
             </div>
           </div>
         }
