@@ -39,7 +39,11 @@ bundle-api:
     #!/usr/bin/env bash
     set -euo pipefail
     if ! command -v worker-build >/dev/null 2>&1; then
-        cargo install -q worker-build --version 0.7.5
+        cargo install -q worker-build --version 0.8.5
+    fi
+    required="$(worker-build --version | awk '{print $NF}')"
+    if [[ "$required" != 0.8.* ]]; then
+        cargo install -q worker-build --version 0.8.5 --force
     fi
     cd {{ api }} && worker-build --release
 
